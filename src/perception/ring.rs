@@ -91,12 +91,13 @@ fn shortest_path_excluding_bond(
             if *bond_id == forbidden_bond_id {
                 continue;
             }
-            if let Some(neighbor_idx) = perception.atom_id_to_index.get(neighbor_atom_id) {
-                if !visited[*neighbor_idx] {
-                    visited[*neighbor_idx] = true;
-                    parent[*neighbor_idx] = Some((current_idx, *bond_id));
-                    queue.push_back(*neighbor_idx);
+            if let Some(&neighbor_idx) = perception.atom_id_to_index.get(neighbor_atom_id) {
+                if visited[neighbor_idx] {
+                    continue;
                 }
+                visited[neighbor_idx] = true;
+                parent[neighbor_idx] = Some((current_idx, *bond_id));
+                queue.push_back(neighbor_idx);
             }
         }
     }
@@ -166,11 +167,12 @@ fn count_components(perception: &ChemicalPerception) -> usize {
             visited[i] = true;
             while let Some(current) = stack.pop() {
                 for (neighbor_id, _) in &perception.adjacency[current] {
-                    if let Some(neighbor_idx) = perception.atom_id_to_index.get(neighbor_id) {
-                        if !visited[*neighbor_idx] {
-                            visited[*neighbor_idx] = true;
-                            stack.push(*neighbor_idx);
+                    if let Some(&neighbor_idx) = perception.atom_id_to_index.get(neighbor_id) {
+                        if visited[neighbor_idx] {
+                            continue;
                         }
+                        visited[neighbor_idx] = true;
+                        stack.push(neighbor_idx);
                     }
                 }
             }
