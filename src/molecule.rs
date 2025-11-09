@@ -147,3 +147,119 @@ impl MoleculeGraph for Molecule {
         self.bonds.iter()
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::core::atom::Element;
+    use crate::core::bond::BondOrder;
+
+    #[test]
+    fn add_atom_assigns_incrementing_ids_and_stores_properties() {
+        let mut molecule = Molecule::new();
+
+        let carbon_id = molecule.add_atom(Element::C, 0);
+        let oxygen_id = molecule.add_atom(Element::O, -1);
+
+        assert_eq!(carbon_id, 0);
+        assert_eq!(oxygen_id, 1);
+
+        let carbon = molecule.atom(carbon_id).expect("carbon atom missing");
+        assert_eq!(carbon.id(), carbon_id);
+        assert_eq!(carbon.element(), Element::C);
+        assert_eq!(carbon.formal_charge(), 0);
+
+        assert!(molecule.atom(2).is_none());
+    }
+
+    #[test]
+    fn add_bond_connects_atoms_and_updates_adjacency() {
+        let mut molecule = Molecule::new();
+        let carbon_id = molecule.add_atom(Element::C, 0);
+        let oxygen_id = molecule.add_atom(Element::O, 0);
+
+        let bond_id = molecule
+            .add_bond(carbon_id, oxygen_id, BondOrder::Double)
+            .expect("bond creation failed");
+
+        assert_eq!(bond_id, 0);
+
+        let bond = molecule.bond(bond_id).expect("bond missing");
+        assert_eq!(bond.id(), bond_id);
+        assert_eq!(bond.start_atom_id(), carbon_id);
+        assert_eq!(bond.end_atom_id(), oxygen_id);
+        assert_eq!(bond.order(), BondOrder::Double);
+
+        let bonds_of_carbon: Vec<_> = molecule.bonds_of_atom(carbon_id).collect();
+        assert_eq!(bonds_of_carbon, vec![bond_id]);
+
+        let bonds_of_oxygen: Vec<_> = molecule.bonds_of_atom(oxygen_id).collect();
+        assert_eq!(bonds_of_oxygen, vec![bond_id]);
+    }
+
+    #[test]
+    fn add_bond_returns_error_for_missing_atoms() {
+        let mut molecule = Molecule::new();
+        let carbon_id = molecule.add_atom(Element::C, 0);
+
+        let err = molecule
+            .add_bond(carbon_id, carbon_id + 1, BondOrder::Single)
+            .expect_err("expected missing atom error");
+
+        assert_eq!(
+            err,
+            MoleculeBuildError::AtomNotFound(carbon_id + 1, carbon_id)
+        );
+    }
+
+    #[test]
+    fn add_bond_returns_error_for_duplicate_edges() {
+        let mut molecule = Molecule::new();
+        let carbon_id = molecule.add_atom(Element::C, 0);
+        let oxygen_id = molecule.add_atom(Element::O, 0);
+
+        molecule
+            .add_bond(carbon_id, oxygen_id, BondOrder::Single)
+            .expect("first bond creation failed");
+
+        let err = molecule
+            .add_bond(carbon_id, oxygen_id, BondOrder::Double)
+            .expect_err("expected duplicate bond error");
+
+        assert_eq!(err, MoleculeBuildError::DuplicateBond(carbon_id, oxygen_id));
+
+        let err_reversed = molecule
+            .add_bond(oxygen_id, carbon_id, BondOrder::Single)
+            .expect_err("expected duplicate bond error");
+
+        assert_eq!(
+            err_reversed,
+            MoleculeBuildError::DuplicateBond(oxygen_id, carbon_id)
+        );
+    }
+
+    #[test]
+    fn bonds_of_atom_collects_all_incident_bonds() {
+        let mut molecule = Molecule::new();
+        let carbon_id = molecule.add_atom(Element::C, 0);
+        let oxygen_id = molecule.add_atom(Element::O, 0);
+        let hydrogen_id = molecule.add_atom(Element::H, 0);
+
+        let first_bond = molecule
+            .add_bond(carbon_id, oxygen_id, BondOrder::Double)
+            .expect("first bond creation failed");
+        let second_bond = molecule
+            .add_bond(carbon_id, hydrogen_id, BondOrder::Single)
+            .expect("second bond creation failed");
+
+        let mut bonds_of_carbon: Vec<_> = molecule.bonds_of_atom(carbon_id).collect();
+        bonds_of_carbon.sort_unstable();
+        assert_eq!(bonds_of_carbon, vec![first_bond, second_bond]);
+
+        let bonds_of_oxygen: Vec<_> = molecule.bonds_of_atom(oxygen_id).collect();
+        assert_eq!(bonds_of_oxygen, vec![first_bond]);
+
+        let bonds_of_hydrogen: Vec<_> = molecule.bonds_of_atom(hydrogen_id).collect();
+        assert_eq!(bonds_of_hydrogen, vec![second_bond]);
+    }
+}
