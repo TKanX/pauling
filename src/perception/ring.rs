@@ -216,3 +216,149 @@ impl BitVec {
         self.data.iter().all(|&word| word == 0)
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::core::atom::Element;
+    use crate::core::bond::BondOrder;
+    use crate::perception::{ChemicalPerception, PerceivedAtom, PerceivedBond};
+    use std::collections::HashMap;
+
+    fn build_perception(edges: &[(BondId, AtomId, AtomId)]) -> ChemicalPerception {
+        let max_atom_id = edges
+            .iter()
+            .flat_map(|(_, start, end)| [*start, *end])
+            .max()
+            .unwrap_or(0);
+        let num_atoms = max_atom_id + 1;
+
+        let mut adjacency: Vec<Vec<(usize, BondId)>> = vec![Vec::new(); num_atoms];
+        let mut bonds = Vec::new();
+        let mut bond_id_to_index = HashMap::new();
+
+        for (bond_index, (bond_id, start_atom_id, end_atom_id)) in edges.iter().enumerate() {
+            adjacency[*start_atom_id].push((*end_atom_id, *bond_id));
+            adjacency[*end_atom_id].push((*start_atom_id, *bond_id));
+
+            bond_id_to_index.insert(*bond_id, bond_index);
+            bonds.push(PerceivedBond {
+                id: *bond_id,
+                order: BondOrder::Single,
+                start_atom_id: *start_atom_id,
+                end_atom_id: *end_atom_id,
+                is_in_ring: false,
+                is_aromatic: false,
+                kekule_order: None,
+            });
+        }
+
+        let atom_id_to_index = (0..num_atoms)
+            .map(|id| (id, id))
+            .collect::<HashMap<AtomId, usize>>();
+
+        let atoms = (0..num_atoms)
+            .map(|id| PerceivedAtom {
+                id,
+                element: Element::C,
+                formal_charge: 0,
+                total_degree: adjacency[id].len() as u8,
+                total_valence: 0,
+                is_in_ring: false,
+                is_aromatic: false,
+            })
+            .collect();
+
+        ChemicalPerception {
+            atoms,
+            bonds,
+            adjacency,
+            atom_id_to_index,
+            bond_id_to_index,
+            ring_info: RingInfo::default(),
+        }
+    }
+
+    #[test]
+    fn find_sssr_returns_no_rings_for_acyclic_graph() {
+        let perception = build_perception(&[(0, 0, 1), (1, 1, 2)]);
+        let ring_info = find_sssr(&perception);
+        assert!(ring_info.rings.is_empty());
+    }
+
+    #[test]
+    fn find_sssr_detects_single_cycle() {
+        let perception = build_perception(&[(0, 0, 1), (1, 1, 2), (2, 2, 3), (3, 3, 0)]);
+
+        let ring_info = find_sssr(&perception);
+        assert_eq!(ring_info.rings.len(), 1);
+
+        let ring = &ring_info.rings[0];
+        assert_eq!(ring.atom_ids, vec![0, 1, 2, 3]);
+        assert_eq!(ring.bond_ids, vec![0, 1, 2, 3]);
+    }
+
+    #[test]
+    fn find_sssr_identifies_multiple_independent_cycles() {
+        let perception = build_perception(&[
+            (0, 0, 1),
+            (1, 1, 2),
+            (2, 2, 3),
+            (3, 3, 0),
+            (4, 3, 4),
+            (5, 4, 5),
+            (6, 5, 6),
+            (7, 6, 3),
+        ]);
+
+        let ring_info = find_sssr(&perception);
+        assert_eq!(ring_info.rings.len(), 2);
+
+        let mut atom_sets: Vec<Vec<AtomId>> = ring_info
+            .rings
+            .iter()
+            .map(|ring| ring.atom_ids.clone())
+            .collect();
+        atom_sets.sort();
+        assert_eq!(atom_sets, vec![vec![0, 1, 2, 3], vec![3, 4, 5, 6]]);
+
+        let mut bond_sets: Vec<Vec<BondId>> = ring_info
+            .rings
+            .iter()
+            .map(|ring| ring.bond_ids.clone())
+            .collect();
+        bond_sets.sort();
+        assert_eq!(bond_sets, vec![vec![0, 1, 2, 3], vec![4, 5, 6, 7]]);
+    }
+
+    #[test]
+    fn find_sssr_handles_disconnected_components_with_cycles() {
+        let perception = build_perception(&[
+            (0, 0, 1),
+            (1, 1, 2),
+            (2, 2, 0),
+            (3, 3, 4),
+            (4, 4, 5),
+            (5, 5, 3),
+        ]);
+
+        let ring_info = find_sssr(&perception);
+        assert_eq!(ring_info.rings.len(), 2);
+
+        let mut atom_sets: Vec<Vec<AtomId>> = ring_info
+            .rings
+            .iter()
+            .map(|ring| ring.atom_ids.clone())
+            .collect();
+        atom_sets.sort();
+        assert_eq!(atom_sets, vec![vec![0, 1, 2], vec![3, 4, 5]]);
+
+        let mut bond_sets: Vec<Vec<BondId>> = ring_info
+            .rings
+            .iter()
+            .map(|ring| ring.bond_ids.clone())
+            .collect();
+        bond_sets.sort();
+        assert_eq!(bond_sets, vec![vec![0, 1, 2], vec![3, 4, 5]]);
+    }
+}
