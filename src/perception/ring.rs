@@ -87,16 +87,13 @@ fn shortest_path_excluding_bond(
         if current_idx == *end_idx {
             break;
         }
-        for (neighbor_atom_id, bond_id) in &perception.adjacency[current_idx] {
-            if *bond_id == forbidden_bond_id {
+        for &(neighbor_idx, bond_id) in &perception.adjacency[current_idx] {
+            if bond_id == forbidden_bond_id {
                 continue;
             }
-            if let Some(&neighbor_idx) = perception.atom_id_to_index.get(neighbor_atom_id) {
-                if visited[neighbor_idx] {
-                    continue;
-                }
+            if !visited[neighbor_idx] {
                 visited[neighbor_idx] = true;
-                parent[neighbor_idx] = Some((current_idx, *bond_id));
+                parent[neighbor_idx] = Some((current_idx, bond_id));
                 queue.push_back(neighbor_idx);
             }
         }
