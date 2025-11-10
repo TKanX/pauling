@@ -163,11 +163,8 @@ fn count_components(perception: &ChemicalPerception) -> usize {
             let mut stack = vec![i];
             visited[i] = true;
             while let Some(current) = stack.pop() {
-                for (neighbor_id, _) in &perception.adjacency[current] {
-                    if let Some(&neighbor_idx) = perception.atom_id_to_index.get(neighbor_id) {
-                        if visited[neighbor_idx] {
-                            continue;
-                        }
+                for &(neighbor_idx, _) in &perception.adjacency[current] {
+                    if !visited[neighbor_idx] {
                         visited[neighbor_idx] = true;
                         stack.push(neighbor_idx);
                     }
