@@ -168,7 +168,7 @@ fn is_potential_sp2_hybrid(perception: &ChemicalPerception, atom_idx: usize) -> 
     let atom = &perception.atoms[atom_idx];
     // This rule covers most common cases in organic chemistry.
     // Transition metals and hypervalent atoms are out of scope.
-    atom.total_degree <= 3
+    atom.total_degree <= 3 && atom.element.is_common_conjugation_element()
 }
 
 /// Encapsulates the chemical rules for counting π electrons contributed by an atom.

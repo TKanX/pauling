@@ -36,6 +36,15 @@ macro_rules! define_elements {
                 };
                 Some(electrons)
             }
+
+            pub fn is_common_conjugation_element(self) -> bool {
+                matches!(
+                    self,
+                    Element::B | Element::C | Element::N | Element::O | Element::P |
+                    Element::S | Element::Si | Element::As | Element::Se | Element::Ge |
+                    Element::F | Element::Cl | Element::Br | Element::I
+                )
+            }
         }
 
         impl std::str::FromStr for Element {
