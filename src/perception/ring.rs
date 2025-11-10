@@ -253,46 +253,47 @@ mod tests {
     use std::collections::HashMap;
 
     fn build_perception(edges: &[(BondId, AtomId, AtomId)]) -> ChemicalPerception {
-        let max_atom_id = edges
+        let all_atom_ids: HashSet<AtomId> = edges
             .iter()
             .flat_map(|(_, start, end)| [*start, *end])
-            .max()
-            .unwrap_or(0);
-        let num_atoms = max_atom_id + 1;
+            .collect();
+
+        let mut sorted_atom_ids: Vec<AtomId> = all_atom_ids.into_iter().collect();
+        sorted_atom_ids.sort_unstable();
+
+        let num_atoms = sorted_atom_ids.len();
+
+        let atom_id_to_index: HashMap<AtomId, usize> = sorted_atom_ids
+            .iter()
+            .enumerate()
+            .map(|(index, &id)| (id, index))
+            .collect();
 
         let mut adjacency: Vec<Vec<(usize, BondId)>> = vec![Vec::new(); num_atoms];
         let mut bonds = Vec::new();
         let mut bond_id_to_index = HashMap::new();
 
-        for (bond_index, (bond_id, start_atom_id, end_atom_id)) in edges.iter().enumerate() {
-            adjacency[*start_atom_id].push((*end_atom_id, *bond_id));
-            adjacency[*end_atom_id].push((*start_atom_id, *bond_id));
+        for (bond_index, &(bond_id, start_atom_id, end_atom_id)) in edges.iter().enumerate() {
+            let start_idx = atom_id_to_index[&start_atom_id];
+            let end_idx = atom_id_to_index[&end_atom_id];
 
-            bond_id_to_index.insert(*bond_id, bond_index);
-            bonds.push(PerceivedBond {
-                id: *bond_id,
-                order: BondOrder::Single,
-                start_atom_id: *start_atom_id,
-                end_atom_id: *end_atom_id,
-                is_in_ring: false,
-                is_aromatic: false,
-                kekule_order: None,
-            });
+            adjacency[start_idx].push((end_idx, bond_id));
+            adjacency[end_idx].push((start_idx, bond_id));
+
+            bond_id_to_index.insert(bond_id, bond_index);
+            bonds.push(PerceivedBond::new(
+                bond_id,
+                BondOrder::Single,
+                start_atom_id,
+                end_atom_id,
+            ));
         }
 
-        let atom_id_to_index = (0..num_atoms)
-            .map(|id| (id, id))
-            .collect::<HashMap<AtomId, usize>>();
-
-        let atoms = (0..num_atoms)
-            .map(|id| PerceivedAtom {
-                id,
-                element: Element::C,
-                formal_charge: 0,
-                total_degree: adjacency[id].len() as u8,
-                total_valence: 0,
-                is_in_ring: false,
-                is_aromatic: false,
+        let atoms: Vec<PerceivedAtom> = sorted_atom_ids
+            .iter()
+            .map(|&id| {
+                let idx = atom_id_to_index[&id];
+                PerceivedAtom::new(id, Element::C, 0, adjacency[idx].len() as u8)
             })
             .collect();
 
