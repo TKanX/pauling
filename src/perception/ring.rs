@@ -125,25 +125,30 @@ fn select_minimal_cycle_basis(
     mut candidates: Vec<Ring>,
     cyclomatic_number: usize,
 ) -> Vec<Ring> {
-    if cyclomatic_number == 0 {
-        return Vec::new();
-    }
-
     candidates.sort_by_key(|r| r.bond_ids.len());
 
     let mut selected_rings = Vec::new();
-    let mut basis: Vec<BitVec> = Vec::new();
+    let mut basis: Vec<(BitVec, usize)> = Vec::new();
 
     for ring in candidates {
         let mut bitvec = BitVec::from_bond_ids(&ring.bond_ids, &perception.bond_id_to_index);
 
-        for basis_vec in &basis {
-            bitvec.xor(basis_vec);
+        for (basis_vec, pivot) in &basis {
+            if bitvec.test(*pivot) {
+                bitvec.xor(basis_vec);
+            }
         }
 
         if !bitvec.is_zero() {
-            basis.push(bitvec);
+            let pivot = bitvec
+                .leading_one()
+                .expect("A non-zero vector must have a leading one.");
+
+            basis.push((bitvec, pivot));
+            basis.sort_by_key(|&(_, p)| p);
+
             selected_rings.push(ring);
+
             if selected_rings.len() == cyclomatic_number {
                 break;
             }
