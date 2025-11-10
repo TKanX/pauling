@@ -5,6 +5,7 @@ use crate::graph::traits::{AtomView, BondView, MoleculeGraph};
 use crate::perception::ring::RingInfo;
 use std::collections::{HashMap, HashSet};
 
+mod aromaticity;
 mod ring;
 
 // Placeholder for future perception modules.
@@ -174,8 +175,7 @@ impl ChemicalPerception {
         }
         perception.ring_info = ring_info;
 
-        // 2. Perceive aromaticity (placeholder).
-        // aromaticity::perceive(&mut perception);
+        aromaticity::perceive(&mut perception);
 
         // 3. Kekulize aromatic systems (placeholder).
         // kekulize::kekulize(&mut perception)?;
