@@ -221,6 +221,27 @@ impl BitVec {
     fn is_zero(&self) -> bool {
         self.data.iter().all(|&word| word == 0)
     }
+
+    fn test(&self, idx: usize) -> bool {
+        let word_idx = idx / 64;
+        let bit_idx = idx % 64;
+        if word_idx >= self.data.len() {
+            return false;
+        }
+        (self.data[word_idx] & (1u64 << bit_idx)) != 0
+    }
+
+    fn leading_one(&self) -> Option<usize> {
+        for (word_idx_rev, &word) in self.data.iter().enumerate().rev() {
+            if word != 0 {
+                let word_idx = self.data.len() - 1 - word_idx_rev;
+                let leading_zeros = word.leading_zeros() as usize;
+                let bit_idx = 63 - leading_zeros;
+                return Some(word_idx * 64 + bit_idx);
+            }
+        }
+        None
+    }
 }
 
 #[cfg(test)]
