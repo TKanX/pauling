@@ -3,16 +3,13 @@ use crate::core::bond::{BondId, BondOrder};
 use crate::errors::PerceptionError;
 use crate::graph::traits::{AtomView, BondView, MoleculeGraph};
 use crate::perception::ring::RingInfo;
+use crate::perception::state::Hybridization;
 use std::collections::{HashMap, HashSet};
 
 mod aromaticity;
 mod kekulize;
 mod ring;
-
-// Placeholder for future perception modules.
-// mod aromaticity;
-// mod kekulize;
-// mod state;
+mod state;
 
 #[derive(Clone, Debug)]
 pub struct PerceivedAtom {
@@ -23,10 +20,9 @@ pub struct PerceivedAtom {
     pub total_valence: u8,
     pub is_in_ring: bool,
     pub is_aromatic: bool,
-    // --- Fields for Resonance Analysis ---
-    // pub hybridization: Hybridization,
-    // pub is_conjugation_candidate: bool,
-    // pub lone_pairs: u8,
+    pub hybridization: Hybridization,
+    pub is_conjugation_candidate: bool,
+    pub lone_pairs: u8,
 }
 
 impl PerceivedAtom {
@@ -39,9 +35,9 @@ impl PerceivedAtom {
             total_valence: 0,
             is_in_ring: false,
             is_aromatic: false,
-            // hybridization: Hybridization::Unknown,
-            // is_conjugation_candidate: false,
-            // lone_pairs: 0,
+            hybridization: Hybridization::Unknown,
+            is_conjugation_candidate: false,
+            lone_pairs: 0,
         }
     }
 }
@@ -180,8 +176,7 @@ impl ChemicalPerception {
 
         kekulize::kekulize(&mut perception)?;
 
-        // 4. Perceive atomic states (valence, hybridization) (placeholder).
-        // state::perceive(&mut perception);
+        state::perceive(&mut perception);
 
         Ok(perception)
     }
