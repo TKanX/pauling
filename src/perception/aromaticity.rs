@@ -211,3 +211,836 @@ fn pi_electrons_for_atom(perception: &ChemicalPerception, atom_idx: usize) -> u3
         _ => 0,                                    // Default case: atom does not contribute.
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::core::atom::{AtomId, Element};
+    use crate::core::bond::{BondId, BondOrder};
+    use crate::molecule::Molecule;
+
+    fn add_atoms(molecule: &mut Molecule, specs: &[(Element, i8)]) -> Vec<AtomId> {
+        specs
+            .iter()
+            .map(|(element, charge)| molecule.add_atom(*element, *charge))
+            .collect()
+    }
+
+    fn add_ring_bond(
+        molecule: &mut Molecule,
+        atoms: &[AtomId],
+        start: usize,
+        end: usize,
+        order: BondOrder,
+        ring_bonds: &mut Vec<BondId>,
+    ) {
+        let bond_id = molecule
+            .add_bond(atoms[start], atoms[end], order)
+            .expect("failed to add ring bond");
+        ring_bonds.push(bond_id);
+    }
+
+    fn assert_aromatic_state(
+        perception: &ChemicalPerception,
+        atom_ids: &[AtomId],
+        bond_ids: &[BondId],
+        expected: bool,
+    ) {
+        for &atom_id in atom_ids {
+            let idx = perception.atom_id_to_index[&atom_id];
+            assert_eq!(
+                perception.atoms[idx].is_aromatic, expected,
+                "atom {} aromatic flag mismatch",
+                atom_id
+            );
+        }
+
+        for &bond_id in bond_ids {
+            let idx = perception.bond_id_to_index[&bond_id];
+            assert_eq!(
+                perception.bonds[idx].is_aromatic, expected,
+                "bond {} aromatic flag mismatch",
+                bond_id
+            );
+        }
+    }
+
+    #[test]
+    fn benzene_is_aromatic() {
+        let mut molecule = Molecule::new();
+        let atom_specs = vec![(Element::C, 0); 6];
+        let atoms = add_atoms(&mut molecule, &atom_specs);
+        let mut ring_bonds = Vec::new();
+
+        add_ring_bond(
+            &mut molecule,
+            &atoms,
+            0,
+            1,
+            BondOrder::Double,
+            &mut ring_bonds,
+        );
+        add_ring_bond(
+            &mut molecule,
+            &atoms,
+            1,
+            2,
+            BondOrder::Single,
+            &mut ring_bonds,
+        );
+        add_ring_bond(
+            &mut molecule,
+            &atoms,
+            2,
+            3,
+            BondOrder::Double,
+            &mut ring_bonds,
+        );
+        add_ring_bond(
+            &mut molecule,
+            &atoms,
+            3,
+            4,
+            BondOrder::Single,
+            &mut ring_bonds,
+        );
+        add_ring_bond(
+            &mut molecule,
+            &atoms,
+            4,
+            5,
+            BondOrder::Double,
+            &mut ring_bonds,
+        );
+        add_ring_bond(
+            &mut molecule,
+            &atoms,
+            5,
+            0,
+            BondOrder::Single,
+            &mut ring_bonds,
+        );
+
+        let perception = ChemicalPerception::from_graph(&molecule).expect("perception failed");
+        assert_aromatic_state(&perception, &atoms, &ring_bonds, true);
+    }
+
+    #[test]
+    fn cyclohexane_is_non_aromatic() {
+        let mut molecule = Molecule::new();
+        let atom_specs = vec![(Element::C, 0); 6];
+        let atoms = add_atoms(&mut molecule, &atom_specs);
+        let mut ring_bonds = Vec::new();
+
+        add_ring_bond(
+            &mut molecule,
+            &atoms,
+            0,
+            1,
+            BondOrder::Single,
+            &mut ring_bonds,
+        );
+        add_ring_bond(
+            &mut molecule,
+            &atoms,
+            1,
+            2,
+            BondOrder::Single,
+            &mut ring_bonds,
+        );
+        add_ring_bond(
+            &mut molecule,
+            &atoms,
+            2,
+            3,
+            BondOrder::Single,
+            &mut ring_bonds,
+        );
+        add_ring_bond(
+            &mut molecule,
+            &atoms,
+            3,
+            4,
+            BondOrder::Single,
+            &mut ring_bonds,
+        );
+        add_ring_bond(
+            &mut molecule,
+            &atoms,
+            4,
+            5,
+            BondOrder::Single,
+            &mut ring_bonds,
+        );
+        add_ring_bond(
+            &mut molecule,
+            &atoms,
+            5,
+            0,
+            BondOrder::Single,
+            &mut ring_bonds,
+        );
+
+        let perception = ChemicalPerception::from_graph(&molecule).expect("perception failed");
+        assert_aromatic_state(&perception, &atoms, &ring_bonds, false);
+    }
+
+    #[test]
+    fn cyclobutadiene_is_non_aromatic() {
+        let mut molecule = Molecule::new();
+        let atom_specs = vec![(Element::C, 0); 4];
+        let atoms = add_atoms(&mut molecule, &atom_specs);
+        let mut ring_bonds = Vec::new();
+
+        add_ring_bond(
+            &mut molecule,
+            &atoms,
+            0,
+            1,
+            BondOrder::Double,
+            &mut ring_bonds,
+        );
+        add_ring_bond(
+            &mut molecule,
+            &atoms,
+            1,
+            2,
+            BondOrder::Single,
+            &mut ring_bonds,
+        );
+        add_ring_bond(
+            &mut molecule,
+            &atoms,
+            2,
+            3,
+            BondOrder::Double,
+            &mut ring_bonds,
+        );
+        add_ring_bond(
+            &mut molecule,
+            &atoms,
+            3,
+            0,
+            BondOrder::Single,
+            &mut ring_bonds,
+        );
+
+        let perception = ChemicalPerception::from_graph(&molecule).expect("perception failed");
+        assert_aromatic_state(&perception, &atoms, &ring_bonds, false);
+    }
+
+    #[test]
+    fn pyridine_is_aromatic() {
+        let mut molecule = Molecule::new();
+        let atom_specs = vec![
+            (Element::C, 0),
+            (Element::C, 0),
+            (Element::C, 0),
+            (Element::C, 0),
+            (Element::C, 0),
+            (Element::N, 0),
+        ];
+        let atoms = add_atoms(&mut molecule, &atom_specs);
+        let mut ring_bonds = Vec::new();
+
+        add_ring_bond(
+            &mut molecule,
+            &atoms,
+            0,
+            1,
+            BondOrder::Double,
+            &mut ring_bonds,
+        );
+        add_ring_bond(
+            &mut molecule,
+            &atoms,
+            1,
+            2,
+            BondOrder::Single,
+            &mut ring_bonds,
+        );
+        add_ring_bond(
+            &mut molecule,
+            &atoms,
+            2,
+            3,
+            BondOrder::Double,
+            &mut ring_bonds,
+        );
+        add_ring_bond(
+            &mut molecule,
+            &atoms,
+            3,
+            4,
+            BondOrder::Single,
+            &mut ring_bonds,
+        );
+        add_ring_bond(
+            &mut molecule,
+            &atoms,
+            4,
+            5,
+            BondOrder::Double,
+            &mut ring_bonds,
+        );
+        add_ring_bond(
+            &mut molecule,
+            &atoms,
+            5,
+            0,
+            BondOrder::Single,
+            &mut ring_bonds,
+        );
+
+        let perception = ChemicalPerception::from_graph(&molecule).expect("perception failed");
+        assert_aromatic_state(&perception, &atoms, &ring_bonds, true);
+    }
+
+    #[test]
+    fn pyrrole_is_aromatic() {
+        let mut molecule = Molecule::new();
+        let atom_specs = vec![
+            (Element::C, 0),
+            (Element::C, 0),
+            (Element::C, 0),
+            (Element::C, 0),
+            (Element::N, 0),
+        ];
+        let atoms = add_atoms(&mut molecule, &atom_specs);
+        let ring_atoms = atoms.clone();
+        let mut ring_bonds = Vec::new();
+
+        add_ring_bond(
+            &mut molecule,
+            &atoms,
+            0,
+            1,
+            BondOrder::Double,
+            &mut ring_bonds,
+        );
+        add_ring_bond(
+            &mut molecule,
+            &atoms,
+            1,
+            2,
+            BondOrder::Single,
+            &mut ring_bonds,
+        );
+        add_ring_bond(
+            &mut molecule,
+            &atoms,
+            2,
+            3,
+            BondOrder::Double,
+            &mut ring_bonds,
+        );
+        add_ring_bond(
+            &mut molecule,
+            &atoms,
+            3,
+            4,
+            BondOrder::Single,
+            &mut ring_bonds,
+        );
+        add_ring_bond(
+            &mut molecule,
+            &atoms,
+            4,
+            0,
+            BondOrder::Single,
+            &mut ring_bonds,
+        );
+
+        let hydrogen = molecule.add_atom(Element::H, 0);
+        molecule
+            .add_bond(atoms[4], hydrogen, BondOrder::Single)
+            .expect("failed to attach hydrogen");
+
+        let perception = ChemicalPerception::from_graph(&molecule).expect("perception failed");
+        assert_aromatic_state(&perception, &ring_atoms, &ring_bonds, true);
+    }
+
+    #[test]
+    fn furan_is_aromatic() {
+        let mut molecule = Molecule::new();
+        let atom_specs = vec![
+            (Element::C, 0),
+            (Element::C, 0),
+            (Element::C, 0),
+            (Element::C, 0),
+            (Element::O, 0),
+        ];
+        let atoms = add_atoms(&mut molecule, &atom_specs);
+        let mut ring_bonds = Vec::new();
+
+        add_ring_bond(
+            &mut molecule,
+            &atoms,
+            0,
+            1,
+            BondOrder::Double,
+            &mut ring_bonds,
+        );
+        add_ring_bond(
+            &mut molecule,
+            &atoms,
+            1,
+            2,
+            BondOrder::Single,
+            &mut ring_bonds,
+        );
+        add_ring_bond(
+            &mut molecule,
+            &atoms,
+            2,
+            3,
+            BondOrder::Double,
+            &mut ring_bonds,
+        );
+        add_ring_bond(
+            &mut molecule,
+            &atoms,
+            3,
+            4,
+            BondOrder::Single,
+            &mut ring_bonds,
+        );
+        add_ring_bond(
+            &mut molecule,
+            &atoms,
+            4,
+            0,
+            BondOrder::Single,
+            &mut ring_bonds,
+        );
+
+        let perception = ChemicalPerception::from_graph(&molecule).expect("perception failed");
+        assert_aromatic_state(&perception, &atoms, &ring_bonds, true);
+    }
+
+    #[test]
+    fn imidazole_is_aromatic() {
+        let mut molecule = Molecule::new();
+        let atom_specs = vec![
+            (Element::C, 0),
+            (Element::N, 0),
+            (Element::C, 0),
+            (Element::C, 0),
+            (Element::N, 0),
+        ];
+        let atoms = add_atoms(&mut molecule, &atom_specs);
+        let ring_atoms = atoms.clone();
+        let mut ring_bonds = Vec::new();
+
+        add_ring_bond(
+            &mut molecule,
+            &atoms,
+            0,
+            1,
+            BondOrder::Double,
+            &mut ring_bonds,
+        );
+        add_ring_bond(
+            &mut molecule,
+            &atoms,
+            1,
+            2,
+            BondOrder::Single,
+            &mut ring_bonds,
+        );
+        add_ring_bond(
+            &mut molecule,
+            &atoms,
+            2,
+            3,
+            BondOrder::Double,
+            &mut ring_bonds,
+        );
+        add_ring_bond(
+            &mut molecule,
+            &atoms,
+            3,
+            4,
+            BondOrder::Single,
+            &mut ring_bonds,
+        );
+        add_ring_bond(
+            &mut molecule,
+            &atoms,
+            4,
+            0,
+            BondOrder::Single,
+            &mut ring_bonds,
+        );
+
+        let hydrogen = molecule.add_atom(Element::H, 0);
+        molecule
+            .add_bond(atoms[4], hydrogen, BondOrder::Single)
+            .expect("failed to attach hydrogen");
+
+        let perception = ChemicalPerception::from_graph(&molecule).expect("perception failed");
+        assert_aromatic_state(&perception, &ring_atoms, &ring_bonds, true);
+    }
+
+    #[test]
+    fn naphthalene_is_aromatic() {
+        let mut molecule = Molecule::new();
+        let atom_specs = vec![(Element::C, 0); 10];
+        let atoms = add_atoms(&mut molecule, &atom_specs);
+        let mut ring_bonds = Vec::new();
+
+        add_ring_bond(
+            &mut molecule,
+            &atoms,
+            0,
+            1,
+            BondOrder::Double,
+            &mut ring_bonds,
+        );
+        add_ring_bond(
+            &mut molecule,
+            &atoms,
+            1,
+            2,
+            BondOrder::Single,
+            &mut ring_bonds,
+        );
+        add_ring_bond(
+            &mut molecule,
+            &atoms,
+            2,
+            3,
+            BondOrder::Double,
+            &mut ring_bonds,
+        );
+        add_ring_bond(
+            &mut molecule,
+            &atoms,
+            3,
+            4,
+            BondOrder::Single,
+            &mut ring_bonds,
+        );
+        add_ring_bond(
+            &mut molecule,
+            &atoms,
+            4,
+            5,
+            BondOrder::Double,
+            &mut ring_bonds,
+        );
+        add_ring_bond(
+            &mut molecule,
+            &atoms,
+            5,
+            0,
+            BondOrder::Single,
+            &mut ring_bonds,
+        );
+
+        add_ring_bond(
+            &mut molecule,
+            &atoms,
+            5,
+            6,
+            BondOrder::Single,
+            &mut ring_bonds,
+        );
+        add_ring_bond(
+            &mut molecule,
+            &atoms,
+            6,
+            7,
+            BondOrder::Double,
+            &mut ring_bonds,
+        );
+        add_ring_bond(
+            &mut molecule,
+            &atoms,
+            7,
+            8,
+            BondOrder::Single,
+            &mut ring_bonds,
+        );
+        add_ring_bond(
+            &mut molecule,
+            &atoms,
+            8,
+            9,
+            BondOrder::Double,
+            &mut ring_bonds,
+        );
+        add_ring_bond(
+            &mut molecule,
+            &atoms,
+            9,
+            4,
+            BondOrder::Single,
+            &mut ring_bonds,
+        );
+
+        let perception = ChemicalPerception::from_graph(&molecule).expect("perception failed");
+        assert_eq!(
+            ring_bonds.len(),
+            11,
+            "expected 11 ring bonds for naphthalene"
+        );
+        assert_aromatic_state(&perception, &atoms, &ring_bonds, true);
+    }
+
+    #[test]
+    fn indole_is_aromatic() {
+        let mut molecule = Molecule::new();
+        let atom_specs = vec![
+            (Element::C, 0),
+            (Element::C, 0),
+            (Element::C, 0),
+            (Element::C, 0),
+            (Element::C, 0),
+            (Element::C, 0),
+            (Element::C, 0),
+            (Element::N, 0),
+            (Element::C, 0),
+        ];
+        let atoms = add_atoms(&mut molecule, &atom_specs);
+        let ring_atoms = atoms.clone();
+        let mut ring_bonds = Vec::new();
+
+        add_ring_bond(
+            &mut molecule,
+            &atoms,
+            0,
+            1,
+            BondOrder::Double,
+            &mut ring_bonds,
+        );
+        add_ring_bond(
+            &mut molecule,
+            &atoms,
+            1,
+            2,
+            BondOrder::Single,
+            &mut ring_bonds,
+        );
+        add_ring_bond(
+            &mut molecule,
+            &atoms,
+            2,
+            3,
+            BondOrder::Double,
+            &mut ring_bonds,
+        );
+        add_ring_bond(
+            &mut molecule,
+            &atoms,
+            3,
+            4,
+            BondOrder::Single,
+            &mut ring_bonds,
+        );
+        add_ring_bond(
+            &mut molecule,
+            &atoms,
+            4,
+            5,
+            BondOrder::Single,
+            &mut ring_bonds,
+        );
+        add_ring_bond(
+            &mut molecule,
+            &atoms,
+            5,
+            0,
+            BondOrder::Single,
+            &mut ring_bonds,
+        );
+
+        add_ring_bond(
+            &mut molecule,
+            &atoms,
+            5,
+            6,
+            BondOrder::Double,
+            &mut ring_bonds,
+        );
+        add_ring_bond(
+            &mut molecule,
+            &atoms,
+            6,
+            7,
+            BondOrder::Single,
+            &mut ring_bonds,
+        );
+        add_ring_bond(
+            &mut molecule,
+            &atoms,
+            7,
+            8,
+            BondOrder::Single,
+            &mut ring_bonds,
+        );
+        add_ring_bond(
+            &mut molecule,
+            &atoms,
+            8,
+            4,
+            BondOrder::Double,
+            &mut ring_bonds,
+        );
+
+        let hydrogen = molecule.add_atom(Element::H, 0);
+        molecule
+            .add_bond(atoms[7], hydrogen, BondOrder::Single)
+            .expect("failed to attach hydrogen");
+
+        let perception = ChemicalPerception::from_graph(&molecule).expect("perception failed");
+        assert_eq!(ring_bonds.len(), 10, "expected 10 ring bonds for indole");
+        assert_aromatic_state(&perception, &ring_atoms, &ring_bonds, true);
+    }
+
+    #[test]
+    fn cyclopentadienyl_anion_is_aromatic() {
+        let mut molecule = Molecule::new();
+        let atom_specs = vec![
+            (Element::C, -1),
+            (Element::C, 0),
+            (Element::C, 0),
+            (Element::C, 0),
+            (Element::C, 0),
+        ];
+        let atoms = add_atoms(&mut molecule, &atom_specs);
+        let ring_atoms = atoms.clone();
+        let mut ring_bonds = Vec::new();
+
+        add_ring_bond(
+            &mut molecule,
+            &atoms,
+            0,
+            1,
+            BondOrder::Single,
+            &mut ring_bonds,
+        );
+        add_ring_bond(
+            &mut molecule,
+            &atoms,
+            1,
+            2,
+            BondOrder::Double,
+            &mut ring_bonds,
+        );
+        add_ring_bond(
+            &mut molecule,
+            &atoms,
+            2,
+            3,
+            BondOrder::Single,
+            &mut ring_bonds,
+        );
+        add_ring_bond(
+            &mut molecule,
+            &atoms,
+            3,
+            4,
+            BondOrder::Double,
+            &mut ring_bonds,
+        );
+        add_ring_bond(
+            &mut molecule,
+            &atoms,
+            4,
+            0,
+            BondOrder::Single,
+            &mut ring_bonds,
+        );
+
+        let hydrogen = molecule.add_atom(Element::H, 0);
+        molecule
+            .add_bond(atoms[0], hydrogen, BondOrder::Single)
+            .expect("failed to attach hydrogen");
+
+        let perception = ChemicalPerception::from_graph(&molecule).expect("perception failed");
+        assert_aromatic_state(&perception, &ring_atoms, &ring_bonds, true);
+    }
+
+    #[test]
+    fn tropylium_cation_is_aromatic() {
+        let mut molecule = Molecule::new();
+        let atom_specs = vec![
+            (Element::C, 1),
+            (Element::C, 0),
+            (Element::C, 0),
+            (Element::C, 0),
+            (Element::C, 0),
+            (Element::C, 0),
+            (Element::C, 0),
+        ];
+        let atoms = add_atoms(&mut molecule, &atom_specs);
+        let ring_atoms = atoms.clone();
+        let mut ring_bonds = Vec::new();
+
+        add_ring_bond(
+            &mut molecule,
+            &atoms,
+            0,
+            1,
+            BondOrder::Single,
+            &mut ring_bonds,
+        );
+        add_ring_bond(
+            &mut molecule,
+            &atoms,
+            1,
+            2,
+            BondOrder::Double,
+            &mut ring_bonds,
+        );
+        add_ring_bond(
+            &mut molecule,
+            &atoms,
+            2,
+            3,
+            BondOrder::Single,
+            &mut ring_bonds,
+        );
+        add_ring_bond(
+            &mut molecule,
+            &atoms,
+            3,
+            4,
+            BondOrder::Double,
+            &mut ring_bonds,
+        );
+        add_ring_bond(
+            &mut molecule,
+            &atoms,
+            4,
+            5,
+            BondOrder::Single,
+            &mut ring_bonds,
+        );
+        add_ring_bond(
+            &mut molecule,
+            &atoms,
+            5,
+            6,
+            BondOrder::Double,
+            &mut ring_bonds,
+        );
+        add_ring_bond(
+            &mut molecule,
+            &atoms,
+            6,
+            0,
+            BondOrder::Single,
+            &mut ring_bonds,
+        );
+
+        let hydrogen = molecule.add_atom(Element::H, 0);
+        molecule
+            .add_bond(atoms[0], hydrogen, BondOrder::Single)
+            .expect("failed to attach hydrogen");
+
+        let perception = ChemicalPerception::from_graph(&molecule).expect("perception failed");
+        assert_aromatic_state(&perception, &ring_atoms, &ring_bonds, true);
+    }
+}
