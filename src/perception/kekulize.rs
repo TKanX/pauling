@@ -153,3 +153,564 @@ fn kekule_backtrack(
 
     false
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::core::atom::{AtomId, Element};
+    use crate::core::bond::{BondId, BondOrder};
+    use crate::molecule::Molecule;
+    use std::collections::HashSet;
+
+    fn add_atoms(molecule: &mut Molecule, specs: &[(Element, i8)]) -> Vec<AtomId> {
+        specs
+            .iter()
+            .map(|(element, charge)| molecule.add_atom(*element, *charge))
+            .collect()
+    }
+
+    fn add_ring_bond(
+        molecule: &mut Molecule,
+        atoms: &[AtomId],
+        start: usize,
+        end: usize,
+        order: BondOrder,
+        ring_bonds: &mut Vec<BondId>,
+    ) {
+        let bond_id = molecule
+            .add_bond(atoms[start], atoms[end], order)
+            .expect("failed to add ring bond");
+        ring_bonds.push(bond_id);
+    }
+
+    fn perceive_and_kekulize(molecule: &Molecule) -> ChemicalPerception {
+        let mut perception = ChemicalPerception::from_graph(molecule).expect("perception failed");
+        kekulize(&mut perception).expect("kekulization failed");
+        perception
+    }
+
+    fn verify_kekule_assignments(
+        perception: &ChemicalPerception,
+        ring_atoms: &[AtomId],
+        ring_bonds: &[BondId],
+        expected_double_bonds: usize,
+    ) {
+        let ring_bond_set: HashSet<_> = ring_bonds.iter().copied().collect();
+
+        let double_bond_count = ring_bonds
+            .iter()
+            .filter(|&&bond_id| {
+                let idx = perception.bond_id_to_index[&bond_id];
+                perception.bonds[idx].kekule_order == Some(BondOrder::Double)
+            })
+            .count();
+        assert_eq!(double_bond_count, expected_double_bonds);
+
+        for &bond_id in ring_bonds {
+            let idx = perception.bond_id_to_index[&bond_id];
+            assert!(
+                perception.bonds[idx].kekule_order.is_some(),
+                "bond {} missing kekule assignment",
+                bond_id
+            );
+        }
+
+        for &atom_id in ring_atoms {
+            let idx = perception.atom_id_to_index[&atom_id];
+            let double_incident = perception.adjacency[idx]
+                .iter()
+                .filter(|(_, bond_id)| ring_bond_set.contains(bond_id))
+                .filter(|(_, bond_id)| {
+                    let bond_idx = perception.bond_id_to_index[bond_id];
+                    perception.bonds[bond_idx].kekule_order == Some(BondOrder::Double)
+                })
+                .count();
+            assert_eq!(
+                double_incident, 1,
+                "atom {} has {} double bonds",
+                atom_id, double_incident
+            );
+        }
+    }
+
+    #[test]
+    fn benzene_kekulization_assigns_alternating_bonds() {
+        let mut molecule = Molecule::new();
+        let atoms = add_atoms(&mut molecule, &vec![(Element::C, 0); 6]);
+        let mut ring_bonds = Vec::new();
+
+        add_ring_bond(
+            &mut molecule,
+            &atoms,
+            0,
+            1,
+            BondOrder::Double,
+            &mut ring_bonds,
+        );
+        add_ring_bond(
+            &mut molecule,
+            &atoms,
+            1,
+            2,
+            BondOrder::Single,
+            &mut ring_bonds,
+        );
+        add_ring_bond(
+            &mut molecule,
+            &atoms,
+            2,
+            3,
+            BondOrder::Double,
+            &mut ring_bonds,
+        );
+        add_ring_bond(
+            &mut molecule,
+            &atoms,
+            3,
+            4,
+            BondOrder::Single,
+            &mut ring_bonds,
+        );
+        add_ring_bond(
+            &mut molecule,
+            &atoms,
+            4,
+            5,
+            BondOrder::Double,
+            &mut ring_bonds,
+        );
+        add_ring_bond(
+            &mut molecule,
+            &atoms,
+            5,
+            0,
+            BondOrder::Single,
+            &mut ring_bonds,
+        );
+
+        let perception = perceive_and_kekulize(&molecule);
+        verify_kekule_assignments(&perception, &atoms, &ring_bonds, 3);
+    }
+
+    #[test]
+    fn naphthalene_kekulization_assigns_valid_pattern() {
+        let mut molecule = Molecule::new();
+        let atoms = add_atoms(&mut molecule, &vec![(Element::C, 0); 10]);
+        let mut ring_bonds = Vec::new();
+
+        add_ring_bond(
+            &mut molecule,
+            &atoms,
+            0,
+            1,
+            BondOrder::Double,
+            &mut ring_bonds,
+        );
+        add_ring_bond(
+            &mut molecule,
+            &atoms,
+            1,
+            2,
+            BondOrder::Single,
+            &mut ring_bonds,
+        );
+        add_ring_bond(
+            &mut molecule,
+            &atoms,
+            2,
+            3,
+            BondOrder::Double,
+            &mut ring_bonds,
+        );
+        add_ring_bond(
+            &mut molecule,
+            &atoms,
+            3,
+            4,
+            BondOrder::Single,
+            &mut ring_bonds,
+        );
+        add_ring_bond(
+            &mut molecule,
+            &atoms,
+            4,
+            5,
+            BondOrder::Double,
+            &mut ring_bonds,
+        );
+        add_ring_bond(
+            &mut molecule,
+            &atoms,
+            5,
+            0,
+            BondOrder::Single,
+            &mut ring_bonds,
+        );
+
+        add_ring_bond(
+            &mut molecule,
+            &atoms,
+            5,
+            6,
+            BondOrder::Single,
+            &mut ring_bonds,
+        );
+        add_ring_bond(
+            &mut molecule,
+            &atoms,
+            6,
+            7,
+            BondOrder::Double,
+            &mut ring_bonds,
+        );
+        add_ring_bond(
+            &mut molecule,
+            &atoms,
+            7,
+            8,
+            BondOrder::Single,
+            &mut ring_bonds,
+        );
+        add_ring_bond(
+            &mut molecule,
+            &atoms,
+            8,
+            9,
+            BondOrder::Double,
+            &mut ring_bonds,
+        );
+        add_ring_bond(
+            &mut molecule,
+            &atoms,
+            9,
+            4,
+            BondOrder::Single,
+            &mut ring_bonds,
+        );
+
+        let perception = perceive_and_kekulize(&molecule);
+        verify_kekule_assignments(&perception, &atoms, &ring_bonds, 5);
+    }
+
+    #[test]
+    fn pyridine_kekulization_assigns_valid_pattern() {
+        let mut molecule = Molecule::new();
+        let atoms = add_atoms(
+            &mut molecule,
+            &vec![
+                (Element::C, 0),
+                (Element::C, 0),
+                (Element::C, 0),
+                (Element::C, 0),
+                (Element::C, 0),
+                (Element::N, 0),
+            ],
+        );
+        let mut ring_bonds = Vec::new();
+
+        add_ring_bond(
+            &mut molecule,
+            &atoms,
+            0,
+            1,
+            BondOrder::Double,
+            &mut ring_bonds,
+        );
+        add_ring_bond(
+            &mut molecule,
+            &atoms,
+            1,
+            2,
+            BondOrder::Single,
+            &mut ring_bonds,
+        );
+        add_ring_bond(
+            &mut molecule,
+            &atoms,
+            2,
+            3,
+            BondOrder::Double,
+            &mut ring_bonds,
+        );
+        add_ring_bond(
+            &mut molecule,
+            &atoms,
+            3,
+            4,
+            BondOrder::Single,
+            &mut ring_bonds,
+        );
+        add_ring_bond(
+            &mut molecule,
+            &atoms,
+            4,
+            5,
+            BondOrder::Double,
+            &mut ring_bonds,
+        );
+        add_ring_bond(
+            &mut molecule,
+            &atoms,
+            5,
+            0,
+            BondOrder::Single,
+            &mut ring_bonds,
+        );
+
+        let perception = perceive_and_kekulize(&molecule);
+        verify_kekule_assignments(&perception, &atoms, &ring_bonds, 3);
+    }
+
+    #[test]
+    fn biphenyl_kekulization_handles_multiple_components() {
+        let mut molecule = Molecule::new();
+        let atoms = add_atoms(&mut molecule, &vec![(Element::C, 0); 12]);
+        let mut ring_bonds = Vec::new();
+
+        add_ring_bond(
+            &mut molecule,
+            &atoms,
+            0,
+            1,
+            BondOrder::Double,
+            &mut ring_bonds,
+        );
+        add_ring_bond(
+            &mut molecule,
+            &atoms,
+            1,
+            2,
+            BondOrder::Single,
+            &mut ring_bonds,
+        );
+        add_ring_bond(
+            &mut molecule,
+            &atoms,
+            2,
+            3,
+            BondOrder::Double,
+            &mut ring_bonds,
+        );
+        add_ring_bond(
+            &mut molecule,
+            &atoms,
+            3,
+            4,
+            BondOrder::Single,
+            &mut ring_bonds,
+        );
+        add_ring_bond(
+            &mut molecule,
+            &atoms,
+            4,
+            5,
+            BondOrder::Double,
+            &mut ring_bonds,
+        );
+        add_ring_bond(
+            &mut molecule,
+            &atoms,
+            5,
+            0,
+            BondOrder::Single,
+            &mut ring_bonds,
+        );
+
+        add_ring_bond(
+            &mut molecule,
+            &atoms,
+            6,
+            7,
+            BondOrder::Double,
+            &mut ring_bonds,
+        );
+        add_ring_bond(
+            &mut molecule,
+            &atoms,
+            7,
+            8,
+            BondOrder::Single,
+            &mut ring_bonds,
+        );
+        add_ring_bond(
+            &mut molecule,
+            &atoms,
+            8,
+            9,
+            BondOrder::Double,
+            &mut ring_bonds,
+        );
+        add_ring_bond(
+            &mut molecule,
+            &atoms,
+            9,
+            10,
+            BondOrder::Single,
+            &mut ring_bonds,
+        );
+        add_ring_bond(
+            &mut molecule,
+            &atoms,
+            10,
+            11,
+            BondOrder::Double,
+            &mut ring_bonds,
+        );
+        add_ring_bond(
+            &mut molecule,
+            &atoms,
+            11,
+            6,
+            BondOrder::Single,
+            &mut ring_bonds,
+        );
+
+        molecule
+            .add_bond(atoms[5], atoms[6], BondOrder::Single)
+            .expect("failed to link phenyl rings");
+
+        let perception = perceive_and_kekulize(&molecule);
+        verify_kekule_assignments(&perception, &atoms, &ring_bonds, 6);
+    }
+
+    #[test]
+    fn purine_kekulization_assigns_valid_pattern() {
+        let mut molecule = Molecule::new();
+
+        let atom_specs = vec![
+            (Element::N, 0),
+            (Element::C, 0),
+            (Element::N, 0),
+            (Element::C, 0),
+            (Element::C, 0),
+            (Element::C, 0),
+            (Element::N, 0),
+            (Element::C, 0),
+            (Element::N, 0),
+        ];
+        let atoms = add_atoms(&mut molecule, &atom_specs);
+        let mut ring_bonds = Vec::new();
+
+        add_ring_bond(
+            &mut molecule,
+            &atoms,
+            0,
+            1,
+            BondOrder::Aromatic,
+            &mut ring_bonds,
+        );
+        add_ring_bond(
+            &mut molecule,
+            &atoms,
+            1,
+            2,
+            BondOrder::Aromatic,
+            &mut ring_bonds,
+        );
+        add_ring_bond(
+            &mut molecule,
+            &atoms,
+            2,
+            3,
+            BondOrder::Aromatic,
+            &mut ring_bonds,
+        );
+        add_ring_bond(
+            &mut molecule,
+            &atoms,
+            3,
+            4,
+            BondOrder::Aromatic,
+            &mut ring_bonds,
+        );
+        add_ring_bond(
+            &mut molecule,
+            &atoms,
+            4,
+            5,
+            BondOrder::Aromatic,
+            &mut ring_bonds,
+        );
+        add_ring_bond(
+            &mut molecule,
+            &atoms,
+            5,
+            0,
+            BondOrder::Aromatic,
+            &mut ring_bonds,
+        );
+        add_ring_bond(
+            &mut molecule,
+            &atoms,
+            4,
+            6,
+            BondOrder::Aromatic,
+            &mut ring_bonds,
+        );
+        add_ring_bond(
+            &mut molecule,
+            &atoms,
+            6,
+            7,
+            BondOrder::Aromatic,
+            &mut ring_bonds,
+        );
+        add_ring_bond(
+            &mut molecule,
+            &atoms,
+            7,
+            8,
+            BondOrder::Aromatic,
+            &mut ring_bonds,
+        );
+        add_ring_bond(
+            &mut molecule,
+            &atoms,
+            8,
+            3,
+            BondOrder::Aromatic,
+            &mut ring_bonds,
+        );
+
+        let h1 = molecule.add_atom(Element::H, 0);
+        molecule
+            .add_bond(atoms[6], h1, BondOrder::Single)
+            .expect("failed to attach H to N7");
+        let h2 = molecule.add_atom(Element::H, 0);
+        molecule
+            .add_bond(atoms[8], h2, BondOrder::Single)
+            .expect("failed to attach H to N9");
+
+        let perception = perceive_and_kekulize(&molecule);
+
+        let double_bond_count = ring_bonds
+            .iter()
+            .filter(|&&bond_id| {
+                let idx = perception.bond_id_to_index[&bond_id];
+                perception.bonds[idx].kekule_order == Some(BondOrder::Double)
+            })
+            .count();
+        assert_eq!(
+            double_bond_count, 4,
+            "Purine should be Kekulized with 4 double bonds"
+        );
+
+        for &atom_id in &atoms {
+            let idx = perception.atom_id_to_index[&atom_id];
+            let double_incident = perception.adjacency[idx]
+                .iter()
+                .filter(|(_, bond_id)| ring_bonds.contains(bond_id))
+                .filter(|(_, bond_id)| {
+                    let bond_idx = perception.bond_id_to_index[bond_id];
+                    perception.bonds[bond_idx].kekule_order == Some(BondOrder::Double)
+                })
+                .count();
+
+            assert!(
+                double_incident <= 1,
+                "atom {} has more than one double bond",
+                atom_id
+            );
+        }
+    }
+}
