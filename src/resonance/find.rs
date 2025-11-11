@@ -18,10 +18,10 @@ fn find_and_expand_conjugated_bonds(perception: &ChemicalPerception) -> HashSet<
 
     for (bond_idx, bond) in perception.bonds.iter().enumerate() {
         let effective_order = bond.kekule_order.unwrap_or(bond.order);
-        if bond.is_aromatic || matches!(effective_order, BondOrder::Double | BondOrder::Triple) {
-            if conjugated.insert(bond_idx) {
-                frontier.push_back(bond_idx);
-            }
+        if (bond.is_aromatic || matches!(effective_order, BondOrder::Double | BondOrder::Triple))
+            && conjugated.insert(bond_idx)
+        {
+            frontier.push_back(bond_idx);
         }
     }
 
@@ -44,10 +44,10 @@ fn find_and_expand_conjugated_bonds(perception: &ChemicalPerception) -> HashSet<
                     let other_end_id = neighbor_bond.other_end(atom.id);
                     let other_end_idx = perception.atom_id_to_index[&other_end_id];
 
-                    if perception.atoms[other_end_idx].is_conjugation_candidate {
-                        if conjugated.insert(neighbor_bond_idx) {
-                            frontier.push_back(neighbor_bond_idx);
-                        }
+                    if perception.atoms[other_end_idx].is_conjugation_candidate
+                        && conjugated.insert(neighbor_bond_idx)
+                    {
+                        frontier.push_back(neighbor_bond_idx);
                     }
                 }
             }
