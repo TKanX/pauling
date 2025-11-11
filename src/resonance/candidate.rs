@@ -236,7 +236,7 @@ mod tests {
         molecule.add_bond(c1, c2, BondOrder::Double).expect("C=C");
 
         for &carbon in &[c_plus, c1, c2] {
-            let hydrogens = if carbon == c_plus { 2 } else { 1 };
+            let hydrogens = if carbon == c1 { 1 } else { 2 };
             for _ in 0..hydrogens {
                 let h = molecule.add_atom(Element::H, 0);
                 molecule
