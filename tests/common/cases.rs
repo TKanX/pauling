@@ -368,4 +368,12 @@ resonance_cases! {
             { atoms: || vec![0, 1, 2, 3, 4, 5, 6, 7, 8, 9], bonds: || vec![0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10] },
         ],
     },
+    dinucleotide_backbone => {
+        title: "Dinucleotide Backbone Fragment",
+        tags: &["biomolecule", "phosphate", "backbone"],
+        molecule: molecules::build_dinucleotide_backbone,
+        systems: [
+            { atoms: || vec![2, 3, 4], bonds: || vec![4, 5] },
+        ],
+    },
 }
