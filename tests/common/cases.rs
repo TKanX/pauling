@@ -218,4 +218,22 @@ resonance_cases! {
             { atoms: || vec![6, 7, 8, 9, 10, 11], bonds: || vec![6, 7, 8, 9, 10, 11] },
         ],
     },
+    tyrosine_zwitterion_aromatic => {
+        title: "Tyrosine Zwitterion (Aromatic Input)",
+        tags: &["biomolecule", "zwitterion", "aromatic", "carboxylate", "phenol"],
+        molecule: molecules::build_tyrosine_zwitterion_aromatic,
+        systems: [
+            { atoms: || vec![2, 3, 4], bonds: || vec![2, 3] },
+            { atoms: || vec![6, 7, 8, 9, 10, 11, 12], bonds: || vec![6, 7, 8, 9, 10, 11, 12] },
+        ],
+    },
+    tyrosine_zwitterion_kekule => {
+        title: "Tyrosine Zwitterion (Kekule Input)",
+        tags: &["biomolecule", "zwitterion", "aromatic", "carboxylate", "phenol"],
+        molecule: molecules::build_tyrosine_zwitterion_kekule,
+        systems: [
+            { atoms: || vec![2, 3, 4], bonds: || vec![2, 3] },
+            { atoms: || vec![6, 7, 8, 9, 10, 11, 12], bonds: || vec![6, 7, 8, 9, 10, 11, 12] },
+        ],
+    },
 }
