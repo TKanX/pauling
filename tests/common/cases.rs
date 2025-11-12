@@ -148,4 +148,12 @@ resonance_cases! {
             { atoms: || vec![2, 3, 4], bonds: || vec![2, 3] },
         ],
     },
+    methionine_zwitterion => {
+        title: "Methionine Zwitterion",
+        tags: &["biomolecule", "zwitterion", "sulfur"],
+        molecule: molecules::build_methionine_zwitterion,
+        systems: [
+            { atoms: || vec![2, 3, 4], bonds: || vec![2, 3] },
+        ],
+    },
 }
