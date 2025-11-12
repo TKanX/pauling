@@ -192,4 +192,12 @@ resonance_cases! {
             { atoms: || vec![7, 8, 9], bonds: || vec![7, 8] },
         ],
     },
+    lysine_zwitterion => {
+        title: "Lysine Zwitterion",
+        tags: &["biomolecule", "zwitterion", "carboxylate", "amine"],
+        molecule: molecules::build_lysine_zwitterion,
+        systems: [
+            { atoms: || vec![2, 3, 4], bonds: || vec![2, 3] },
+        ],
+    },
 }
