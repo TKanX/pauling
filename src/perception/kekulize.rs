@@ -1,3 +1,5 @@
+//! Assigns Kekulé resonance orders to aromatic components.
+
 use crate::core::atom::AtomId;
 use crate::core::bond::BondOrder;
 use crate::errors::PerceptionError;
@@ -6,6 +8,12 @@ use std::collections::{HashMap, VecDeque};
 
 const KEKULIZATION_ATTEMPT_LIMIT: usize = 1000;
 
+/// Assigns alternating single/double orders to every aromatic component.
+///
+/// The algorithm partitions aromatic bonds into connected components and uses a
+/// bounded backtracking search to find a valid assignment that respects atomic
+/// valences. Bonds that remain unassigned after the search default to `Single`
+/// because the resonance delocalisation handles their aromatic character.
 pub fn kekulize(perception: &mut ChemicalPerception) -> Result<(), PerceptionError> {
     let mut visited_bonds = vec![false; perception.bonds.len()];
     let mut total_attempts = 0;
@@ -21,6 +29,7 @@ pub fn kekulize(perception: &mut ChemicalPerception) -> Result<(), PerceptionErr
     Ok(())
 }
 
+/// Collects every aromatic bond reachable from a seed via aromatic-only edges.
 fn collect_aromatic_component(
     perception: &ChemicalPerception,
     start_bond_idx: usize,
@@ -57,6 +66,7 @@ fn collect_aromatic_component(
     component_indices
 }
 
+/// Assigns Kekulé orders for a single aromatic component using backtracking.
 fn assign_kekule_orders(
     perception: &mut ChemicalPerception,
     component_bond_indices: &[usize],
@@ -93,6 +103,7 @@ fn assign_kekule_orders(
     Ok(())
 }
 
+/// Recursive search that enumerates valid alternating assignments.
 fn kekule_backtrack(
     perception: &mut ChemicalPerception,
     position: usize,
