@@ -236,4 +236,22 @@ resonance_cases! {
             { atoms: || vec![6, 7, 8, 9, 10, 11, 12], bonds: || vec![6, 7, 8, 9, 10, 11, 12] },
         ],
     },
+    histidine_zwitterion_aromatic => {
+        title: "Histidine Zwitterion (Aromatic Input)",
+        tags: &["biomolecule", "zwitterion", "aromatic", "heteroaromatic"],
+        molecule: molecules::build_histidine_zwitterion_aromatic,
+        systems: [
+            { atoms: || vec![2, 3, 4], bonds: || vec![2, 3] },
+            { atoms: || vec![6, 7, 8, 9, 10], bonds: || vec![6, 7, 8, 9, 10] },
+        ],
+    },
+    histidine_zwitterion_kekule => {
+        title: "Histidine Zwitterion (Kekule Input)",
+        tags: &["biomolecule", "zwitterion", "aromatic", "heteroaromatic", "kekule"],
+        molecule: molecules::build_histidine_zwitterion_kekule,
+        systems: [
+            { atoms: || vec![2, 3, 4], bonds: || vec![2, 3] },
+            { atoms: || vec![6, 7, 8, 9, 10], bonds: || vec![6, 7, 8, 9, 10] },
+        ],
+    },
 }
