@@ -128,7 +128,7 @@ mod find_resonance_systems_impl {
     ///
     /// Returns a [`PerceptionError`] if the input graph is structurally
     /// inconsistent (e.g., contains dangling bonds or duplicate bonds), or if a
-    // a perception stage fails (e.g., Kekulization does not converge for an
+    /// perception stage fails (e.g., Kekulization does not converge for an
     /// aromatic system).
     ///
     /// # Examples

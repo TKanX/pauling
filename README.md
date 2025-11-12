@@ -71,6 +71,7 @@ fn main() -> Result<(), pauling::PerceptionError> {
 ## Documentation
 
 - [API Documentation](https://docs.rs/pauling) – comprehensive reference for public types and functions.
+- [Architecture Overview](ARCHITECTURE.md) – detailed explanation of the internal design and algorithms used in Pauling.
 
 ## Tech Stack
 
