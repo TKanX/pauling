@@ -272,4 +272,20 @@ resonance_cases! {
             { atoms: || vec![6, 7, 8, 9, 10, 11, 12, 13, 14], bonds: || vec![6, 7, 8, 9, 10, 11, 12, 13, 14, 15] },
         ],
     },
+    uracil_aromatic_input => {
+        title: "Uracil (Aromatic Input)",
+        tags: &["biomolecule", "nucleobase", "heteroaromatic", "aromatic-input"],
+        molecule: molecules::build_uracil_aromatic,
+        systems: [
+            { atoms: || vec![0, 1, 2, 3, 4, 5, 6, 7], bonds: || vec![0, 1, 2, 3, 4, 5, 6, 7] },
+        ],
+    },
+    uracil_kekule_input => {
+        title: "Uracil (Kekulé Input)",
+        tags: &["biomolecule", "nucleobase", "heteroaromatic", "kekule-input"],
+        molecule: molecules::build_uracil_kekule,
+        systems: [
+            { atoms: || vec![0, 1, 2, 3, 4, 5, 6, 7], bonds: || vec![0, 1, 2, 3, 4, 5, 6, 7] },
+        ],
+    },
 }

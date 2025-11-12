@@ -1068,3 +1068,67 @@ pub fn build_tryptophan_zwitterion_kekule() -> TestMolecule {
 
     mol
 }
+
+pub fn build_uracil_aromatic() -> TestMolecule {
+    let mut mol = TestMolecule::new();
+
+    mol.add_atom(0, Element::N, 0);
+    mol.add_atom(1, Element::C, 0);
+    mol.add_atom(2, Element::N, 0);
+    mol.add_atom(3, Element::C, 0);
+    mol.add_atom(4, Element::C, 0);
+    mol.add_atom(5, Element::C, 0);
+    mol.add_atom(6, Element::O, 0);
+    mol.add_atom(7, Element::O, 0);
+    mol.add_atom(8, Element::H, 0);
+    mol.add_atom(9, Element::H, 0);
+    mol.add_atom(10, Element::H, 0);
+    mol.add_atom(11, Element::H, 0);
+
+    mol.add_bond(0, 0, 1, BondOrder::Aromatic);
+    mol.add_bond(1, 1, 2, BondOrder::Aromatic);
+    mol.add_bond(2, 2, 3, BondOrder::Aromatic);
+    mol.add_bond(3, 3, 4, BondOrder::Aromatic);
+    mol.add_bond(4, 4, 5, BondOrder::Aromatic);
+    mol.add_bond(5, 5, 0, BondOrder::Aromatic);
+    mol.add_bond(6, 1, 6, BondOrder::Double);
+    mol.add_bond(7, 3, 7, BondOrder::Double);
+    mol.add_bond(8, 0, 8, BondOrder::Single);
+    mol.add_bond(9, 2, 9, BondOrder::Single);
+    mol.add_bond(10, 4, 10, BondOrder::Single);
+    mol.add_bond(11, 5, 11, BondOrder::Single);
+
+    mol
+}
+
+pub fn build_uracil_kekule() -> TestMolecule {
+    let mut mol = TestMolecule::new();
+
+    mol.add_atom(0, Element::N, 0);
+    mol.add_atom(1, Element::C, 0);
+    mol.add_atom(2, Element::N, 0);
+    mol.add_atom(3, Element::C, 0);
+    mol.add_atom(4, Element::C, 0);
+    mol.add_atom(5, Element::C, 0);
+    mol.add_atom(6, Element::O, 0);
+    mol.add_atom(7, Element::O, 0);
+    mol.add_atom(8, Element::H, 0);
+    mol.add_atom(9, Element::H, 0);
+    mol.add_atom(10, Element::H, 0);
+    mol.add_atom(11, Element::H, 0);
+
+    mol.add_bond(0, 0, 1, BondOrder::Single);
+    mol.add_bond(1, 1, 2, BondOrder::Double);
+    mol.add_bond(2, 2, 3, BondOrder::Single);
+    mol.add_bond(3, 3, 4, BondOrder::Double);
+    mol.add_bond(4, 4, 5, BondOrder::Single);
+    mol.add_bond(5, 5, 0, BondOrder::Double);
+    mol.add_bond(6, 1, 6, BondOrder::Double);
+    mol.add_bond(7, 3, 7, BondOrder::Double);
+    mol.add_bond(8, 0, 8, BondOrder::Single);
+    mol.add_bond(9, 2, 9, BondOrder::Single);
+    mol.add_bond(10, 4, 10, BondOrder::Single);
+    mol.add_bond(11, 5, 11, BondOrder::Single);
+
+    mol
+}
