@@ -108,4 +108,12 @@ resonance_cases! {
             { atoms: || vec![2, 3, 4], bonds: || vec![2, 3] },
         ],
     },
+    isoleucine_zwitterion => {
+        title: "Isoleucine Zwitterion",
+        tags: &["biomolecule", "zwitterion", "carboxylate"],
+        molecule: molecules::build_isoleucine_zwitterion,
+        systems: [
+            { atoms: || vec![2, 3, 4], bonds: || vec![2, 3] },
+        ],
+    },
 }
