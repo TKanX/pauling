@@ -464,4 +464,12 @@ resonance_cases! {
             { atoms: || (0..15).collect(), bonds: || (0..15).collect() },
         ],
     },
+    tetramethylthiourea_resonance => {
+        title: "Tetramethylthiourea Resonance",
+        tags: &["thioamide", "sulfur", "charge-delocalization"],
+        molecule: molecules::build_tetramethylthiourea,
+        systems: [
+            { atoms: || vec![0, 1, 2, 3], bonds: || vec![0, 1, 2] },
+        ],
+    },
 }
