@@ -1,20 +1,31 @@
+//! Simple in-memory molecule for quick experiments and doctests.
+//!
+//! The `Molecule` type implements [`MoleculeGraph`](crate::traits::MoleculeGraph)
+//! so it can be fed directly into the perception pipeline. It is deliberately
+//! minimal and performs only basic validation on insertions.
+
 use crate::core::atom::{AtomId, Element};
 use crate::core::bond::{BondId, BondOrder};
 use crate::graph::traits::{AtomView, BondView, MoleculeGraph};
 use thiserror::Error;
 
+/// Error emitted when an invalid atom or bond is added to a [`Molecule`].
 #[derive(Debug, Error, PartialEq, Eq)]
 pub enum MoleculeBuildError {
+    /// Referenced atom identifier is absent from the molecule.
     #[error("atom ID {0} is out of bounds (highest ID is {1})")]
     AtomNotFound(AtomId, AtomId),
 
+    /// Attempted to create a second bond between the same atom pair.
     #[error("duplicate bond: a bond already exists between atoms {0} and {1}")]
     DuplicateBond(AtomId, AtomId),
 
+    /// Attempted to connect an atom to itself.
     #[error("self-loop bond is not allowed on atom {0}")]
     SelfLoopBond(AtomId),
 }
 
+/// Concrete atom data stored inside [`Molecule`].
 #[derive(Clone, Debug)]
 pub struct Atom {
     id: AtomId,
@@ -34,6 +45,7 @@ impl AtomView for Atom {
     }
 }
 
+/// Concrete bond data stored inside [`Molecule`].
 #[derive(Clone, Debug)]
 pub struct Bond {
     id: BondId,
@@ -57,6 +69,7 @@ impl BondView for Bond {
     }
 }
 
+/// Lightweight adjacency-based molecule that implements [`MoleculeGraph`].
 #[derive(Clone, Debug, Default)]
 pub struct Molecule {
     atoms: Vec<Atom>,
@@ -65,10 +78,21 @@ pub struct Molecule {
 }
 
 impl Molecule {
+    /// Creates an empty molecule with no atoms or bonds.
     pub fn new() -> Self {
         Self::default()
     }
 
+    /// Inserts a new atom and returns its [`AtomId`].
+    ///
+    /// # Arguments
+    ///
+    /// * `element` - Chemical element of the atom.
+    /// * `formal_charge` - Formal charge in units of `e`.
+    ///
+    /// # Returns
+    ///
+    /// The newly assigned [`AtomId`], which equals the insertion index.
     pub fn add_atom(&mut self, element: Element, formal_charge: i8) -> AtomId {
         let id = self.atoms.len();
         self.atoms.push(Atom {
@@ -80,6 +104,23 @@ impl Molecule {
         id
     }
 
+    /// Connects two atoms with a bond of the given order.
+    ///
+    /// # Arguments
+    ///
+    /// * `start_id` - Identifier of the first atom.
+    /// * `end_id` - Identifier of the second atom.
+    /// * `order` - Desired [`BondOrder`].
+    ///
+    /// # Returns
+    ///
+    /// The [`BondId`] assigned to the new bond on success.
+    ///
+    /// # Errors
+    ///
+    /// * [`MoleculeBuildError::SelfLoopBond`] if `start_id == end_id`.
+    /// * [`MoleculeBuildError::AtomNotFound`] if either atom is missing.
+    /// * [`MoleculeBuildError::DuplicateBond`] if a bond already connects the atoms.
     pub fn add_bond(
         &mut self,
         start_id: AtomId,
@@ -127,14 +168,41 @@ impl Molecule {
         Ok(id)
     }
 
+    /// Returns an immutable view of an atom when the identifier is valid.
+    ///
+    /// # Arguments
+    ///
+    /// * `id` - Atom identifier obtained from this molecule.
+    ///
+    /// # Returns
+    ///
+    /// `Some(&Atom)` when the identifier exists, otherwise `None`.
     pub fn atom(&self, id: AtomId) -> Option<&Atom> {
         self.atoms.get(id)
     }
 
+    /// Returns an immutable view of a bond when the identifier is valid.
+    ///
+    /// # Arguments
+    ///
+    /// * `id` - Bond identifier obtained from this molecule.
+    ///
+    /// # Returns
+    ///
+    /// `Some(&Bond)` when the identifier exists, otherwise `None`.
     pub fn bond(&self, id: BondId) -> Option<&Bond> {
         self.bonds.get(id)
     }
 
+    /// Iterates over all bonds incident to the specified atom.
+    ///
+    /// # Arguments
+    ///
+    /// * `id` - Atom identifier obtained from this molecule.
+    ///
+    /// # Returns
+    ///
+    /// An iterator producing the [`BondId`] values of all adjacent bonds.
     pub fn bonds_of_atom(&self, id: AtomId) -> impl Iterator<Item = BondId> + '_ {
         self.adjacency.get(id).into_iter().flatten().copied()
     }
