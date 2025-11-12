@@ -140,4 +140,12 @@ resonance_cases! {
             { atoms: || vec![2, 3, 4], bonds: || vec![2, 3] },
         ],
     },
+    cysteine_zwitterion => {
+        title: "Cysteine Zwitterion",
+        tags: &["biomolecule", "zwitterion", "carboxylate", "sulfur"],
+        molecule: molecules::build_cysteine_zwitterion,
+        systems: [
+            { atoms: || vec![2, 3, 4], bonds: || vec![2, 3] },
+        ],
+    },
 }
