@@ -100,4 +100,12 @@ resonance_cases! {
             { atoms: || vec![2, 3, 4], bonds: || vec![2, 3] },
         ],
     },
+    leucine_zwitterion => {
+        title: "Leucine Zwitterion",
+        tags: &["biomolecule", "zwitterion", "carboxylate"],
+        molecule: molecules::build_leucine_zwitterion,
+        systems: [
+            { atoms: || vec![2, 3, 4], bonds: || vec![2, 3] },
+        ],
+    },
 }
