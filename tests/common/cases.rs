@@ -448,4 +448,20 @@ resonance_cases! {
         molecule: molecules::build_phosphinane,
         systems: [],
     },
+    trinitrobenzene_aromatic_input => {
+        title: "1,3,5-Trinitrobenzene (Aromatic Input)",
+        tags: &["aromatic", "nitro", "cross-conjugation"],
+        molecule: molecules::build_trinitrobenzene_aromatic,
+        systems: [
+            { atoms: || (0..15).collect(), bonds: || (0..15).collect() },
+        ],
+    },
+    trinitrobenzene_kekule_input => {
+        title: "1,3,5-Trinitrobenzene (Kekulé Input)",
+        tags: &["aromatic", "nitro", "cross-conjugation", "kekule"],
+        molecule: molecules::build_trinitrobenzene_kekule,
+        systems: [
+            { atoms: || (0..15).collect(), bonds: || (0..15).collect() },
+        ],
+    },
 }

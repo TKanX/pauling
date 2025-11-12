@@ -2091,3 +2091,91 @@ pub fn build_phosphinane() -> TestMolecule {
 
     mol
 }
+
+pub fn build_trinitrobenzene_aromatic() -> TestMolecule {
+    let mut mol = TestMolecule::new();
+
+    mol.add_atom(0, Element::C, 0);
+    mol.add_atom(1, Element::C, 0);
+    mol.add_atom(2, Element::C, 0);
+    mol.add_atom(3, Element::C, 0);
+    mol.add_atom(4, Element::C, 0);
+    mol.add_atom(5, Element::C, 0);
+    mol.add_atom(6, Element::N, 1);
+    mol.add_atom(7, Element::O, -1);
+    mol.add_atom(8, Element::O, 0);
+    mol.add_atom(9, Element::N, 1);
+    mol.add_atom(10, Element::O, -1);
+    mol.add_atom(11, Element::O, 0);
+    mol.add_atom(12, Element::N, 1);
+    mol.add_atom(13, Element::O, -1);
+    mol.add_atom(14, Element::O, 0);
+    mol.add_atom(15, Element::H, 0);
+    mol.add_atom(16, Element::H, 0);
+    mol.add_atom(17, Element::H, 0);
+
+    mol.add_bond(0, 0, 1, BondOrder::Aromatic);
+    mol.add_bond(1, 1, 2, BondOrder::Aromatic);
+    mol.add_bond(2, 2, 3, BondOrder::Aromatic);
+    mol.add_bond(3, 3, 4, BondOrder::Aromatic);
+    mol.add_bond(4, 4, 5, BondOrder::Aromatic);
+    mol.add_bond(5, 5, 0, BondOrder::Aromatic);
+    mol.add_bond(6, 0, 6, BondOrder::Single);
+    mol.add_bond(7, 6, 7, BondOrder::Single);
+    mol.add_bond(8, 6, 8, BondOrder::Double);
+    mol.add_bond(9, 2, 9, BondOrder::Single);
+    mol.add_bond(10, 9, 10, BondOrder::Single);
+    mol.add_bond(11, 9, 11, BondOrder::Double);
+    mol.add_bond(12, 4, 12, BondOrder::Single);
+    mol.add_bond(13, 12, 13, BondOrder::Single);
+    mol.add_bond(14, 12, 14, BondOrder::Double);
+    mol.add_bond(15, 1, 15, BondOrder::Single);
+    mol.add_bond(16, 3, 16, BondOrder::Single);
+    mol.add_bond(17, 5, 17, BondOrder::Single);
+
+    mol
+}
+
+pub fn build_trinitrobenzene_kekule() -> TestMolecule {
+    let mut mol = TestMolecule::new();
+
+    mol.add_atom(0, Element::C, 0);
+    mol.add_atom(1, Element::C, 0);
+    mol.add_atom(2, Element::C, 0);
+    mol.add_atom(3, Element::C, 0);
+    mol.add_atom(4, Element::C, 0);
+    mol.add_atom(5, Element::C, 0);
+    mol.add_atom(6, Element::N, 1);
+    mol.add_atom(7, Element::O, -1);
+    mol.add_atom(8, Element::O, 0);
+    mol.add_atom(9, Element::N, 1);
+    mol.add_atom(10, Element::O, -1);
+    mol.add_atom(11, Element::O, 0);
+    mol.add_atom(12, Element::N, 1);
+    mol.add_atom(13, Element::O, -1);
+    mol.add_atom(14, Element::O, 0);
+    mol.add_atom(15, Element::H, 0);
+    mol.add_atom(16, Element::H, 0);
+    mol.add_atom(17, Element::H, 0);
+
+    mol.add_bond(0, 0, 1, BondOrder::Double);
+    mol.add_bond(1, 1, 2, BondOrder::Single);
+    mol.add_bond(2, 2, 3, BondOrder::Double);
+    mol.add_bond(3, 3, 4, BondOrder::Single);
+    mol.add_bond(4, 4, 5, BondOrder::Double);
+    mol.add_bond(5, 5, 0, BondOrder::Single);
+    mol.add_bond(6, 0, 6, BondOrder::Single);
+    mol.add_bond(7, 6, 7, BondOrder::Single);
+    mol.add_bond(8, 6, 8, BondOrder::Double);
+    mol.add_bond(9, 2, 9, BondOrder::Single);
+    mol.add_bond(10, 9, 10, BondOrder::Single);
+    mol.add_bond(11, 9, 11, BondOrder::Double);
+    mol.add_bond(12, 4, 12, BondOrder::Single);
+    mol.add_bond(13, 12, 13, BondOrder::Single);
+    mol.add_bond(14, 12, 14, BondOrder::Double);
+    mol.add_bond(15, 1, 15, BondOrder::Single);
+    mol.add_bond(16, 3, 16, BondOrder::Single);
+    mol.add_bond(17, 5, 17, BondOrder::Single);
+
+    mol
+}
