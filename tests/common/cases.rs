@@ -124,4 +124,12 @@ resonance_cases! {
             { atoms: || vec![5, 6, 7], bonds: || vec![6, 7] },
         ],
     },
+    serine_zwitterion => {
+        title: "Serine Zwitterion",
+        tags: &["biomolecule", "zwitterion", "carboxylate"],
+        molecule: molecules::build_serine_zwitterion,
+        systems: [
+            { atoms: || vec![2, 3, 4], bonds: || vec![2, 3] },
+        ],
+    },
 }
