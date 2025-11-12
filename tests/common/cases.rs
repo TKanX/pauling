@@ -210,7 +210,7 @@ resonance_cases! {
         ],
     },
     phenylalanine_zwitterion_kekule => {
-        title: "Phenylalanine Zwitterion (Kekule Input)",
+        title: "Phenylalanine Zwitterion (Kekulé Input)",
         tags: &["biomolecule", "zwitterion", "aromatic", "kekule"],
         molecule: molecules::build_phenylalanine_zwitterion_kekule,
         systems: [
@@ -228,7 +228,7 @@ resonance_cases! {
         ],
     },
     tyrosine_zwitterion_kekule => {
-        title: "Tyrosine Zwitterion (Kekule Input)",
+        title: "Tyrosine Zwitterion (Kekulé Input)",
         tags: &["biomolecule", "zwitterion", "aromatic", "carboxylate", "phenol"],
         molecule: molecules::build_tyrosine_zwitterion_kekule,
         systems: [
@@ -246,7 +246,7 @@ resonance_cases! {
         ],
     },
     histidine_zwitterion_kekule => {
-        title: "Histidine Zwitterion (Kekule Input)",
+        title: "Histidine Zwitterion (Kekulé Input)",
         tags: &["biomolecule", "zwitterion", "aromatic", "heteroaromatic", "kekule"],
         molecule: molecules::build_histidine_zwitterion_kekule,
         systems: [
@@ -264,7 +264,7 @@ resonance_cases! {
         ],
     },
     tryptophan_zwitterion_kekule => {
-        title: "Tryptophan Zwitterion (Kekule Input)",
+        title: "Tryptophan Zwitterion (Kekulé Input)",
         tags: &["biomolecule", "zwitterion", "kekule", "indole"],
         molecule: molecules::build_tryptophan_zwitterion_kekule,
         systems: [
@@ -408,6 +408,22 @@ resonance_cases! {
         molecule: molecules::build_abaxes,
         systems: [
             { atoms: || vec![0, 1, 2, 3], bonds: || vec![0, 1, 2] },
+        ],
+    },
+    methyl_pyridine_aromatic_input => {
+        title: "4-Methylpyridine (Aromatic Input)",
+        tags: &["aromatic", "heterocycle"],
+        molecule: molecules::build_4_methylpyridine_aromatic,
+        systems: [
+            { atoms: || vec![0, 1, 2, 3, 4, 5], bonds: || vec![0, 1, 2, 3, 4, 5] },
+        ],
+    },
+    methyl_pyridine_kekule_input => {
+        title: "4-Methylpyridine (Kekulé Input)",
+        tags: &["aromatic", "heterocycle", "kekule"],
+        molecule: molecules::build_4_methylpyridine_kekule,
+        systems: [
+            { atoms: || vec![0, 1, 2, 3, 4, 5], bonds: || vec![0, 1, 2, 3, 4, 5] },
         ],
     },
 }
