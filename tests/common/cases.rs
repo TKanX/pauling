@@ -254,4 +254,22 @@ resonance_cases! {
             { atoms: || vec![6, 7, 8, 9, 10], bonds: || vec![6, 7, 8, 9, 10] },
         ],
     },
+    tryptophan_zwitterion_aromatic => {
+        title: "Tryptophan Zwitterion (Aromatic Input)",
+        tags: &["biomolecule", "zwitterion", "aromatic", "indole"],
+        molecule: molecules::build_tryptophan_zwitterion_aromatic,
+        systems: [
+            { atoms: || vec![2, 3, 4], bonds: || vec![2, 3] },
+            { atoms: || vec![6, 7, 8, 9, 10, 11, 12, 13, 14], bonds: || vec![6, 7, 8, 9, 10, 11, 12, 13, 14, 15] },
+        ],
+    },
+    tryptophan_zwitterion_kekule => {
+        title: "Tryptophan Zwitterion (Kekule Input)",
+        tags: &["biomolecule", "zwitterion", "kekule", "indole"],
+        molecule: molecules::build_tryptophan_zwitterion_kekule,
+        systems: [
+            { atoms: || vec![2, 3, 4], bonds: || vec![2, 3] },
+            { atoms: || vec![6, 7, 8, 9, 10, 11, 12, 13, 14], bonds: || vec![6, 7, 8, 9, 10, 11, 12, 13, 14, 15] },
+        ],
+    },
 }
