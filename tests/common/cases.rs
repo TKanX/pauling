@@ -510,4 +510,12 @@ resonance_cases! {
             { atoms: || vec![0, 1, 2, 3, 4, 5, 6, 7, 8, 9], bonds: || vec![0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10] },
         ],
     },
+    dimethyl_phosphate_anion => {
+        title: "Dimethyl Phosphate Anion",
+        tags: &["biomolecule", "phosphate", "anion"],
+        molecule: molecules::build_dimethyl_phosphate_anion,
+        systems: [
+            { atoms: || vec![0, 1, 2], bonds: || vec![0, 1] },
+        ],
+    },
 }
