@@ -2280,3 +2280,24 @@ pub fn build_methanesulfonamide() -> TestMolecule {
 
     mol
 }
+
+pub fn build_chloroacetyl_chloride() -> TestMolecule {
+    let mut mol = TestMolecule::new();
+
+    mol.add_atom(0, Element::C, 0);
+    mol.add_atom(1, Element::Cl, 0);
+    mol.add_atom(2, Element::C, 0);
+    mol.add_atom(3, Element::O, 0);
+    mol.add_atom(4, Element::Cl, 0);
+    mol.add_atom(5, Element::H, 0);
+    mol.add_atom(6, Element::H, 0);
+
+    mol.add_bond(0, 0, 1, BondOrder::Single);
+    mol.add_bond(1, 0, 2, BondOrder::Single);
+    mol.add_bond(2, 2, 3, BondOrder::Double);
+    mol.add_bond(3, 2, 4, BondOrder::Single);
+    mol.add_bond(4, 0, 5, BondOrder::Single);
+    mol.add_bond(5, 0, 6, BondOrder::Single);
+
+    mol
+}

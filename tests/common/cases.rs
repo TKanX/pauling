@@ -486,4 +486,12 @@ resonance_cases! {
             { atoms: || vec![0, 1, 2], bonds: || vec![0, 1] },
         ],
     },
+    chloroacetyl_chloride => {
+        title: "Chloroacetyl Chloride",
+        tags: &["acyl-halide", "p-pi-conjugation", "chlorine"],
+        molecule: molecules::build_chloroacetyl_chloride,
+        systems: [
+            { atoms: || vec![2, 3, 4], bonds: || vec![2, 3] },
+        ],
+    },
 }
