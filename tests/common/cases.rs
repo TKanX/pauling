@@ -478,4 +478,12 @@ resonance_cases! {
         molecule: molecules::build_dimethyl_sulfoxide,
         systems: [],
     },
+    methanesulfonamide_cross_conjugation => {
+        title: "Methanesulfonamide (Cross-Conjugation)",
+        tags: &["sulfur", "amide", "cross-conjugation"],
+        molecule: molecules::build_methanesulfonamide,
+        systems: [
+            { atoms: || vec![0, 1, 2], bonds: || vec![0, 1] },
+        ],
+    },
 }

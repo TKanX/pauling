@@ -2253,3 +2253,30 @@ pub fn build_dimethyl_sulfoxide() -> TestMolecule {
 
     mol
 }
+
+pub fn build_methanesulfonamide() -> TestMolecule {
+    let mut mol = TestMolecule::new();
+
+    mol.add_atom(0, Element::S, 0);
+    mol.add_atom(1, Element::O, 0);
+    mol.add_atom(2, Element::O, 0);
+    mol.add_atom(3, Element::N, 0);
+    mol.add_atom(4, Element::C, 0);
+    mol.add_atom(5, Element::H, 0);
+    mol.add_atom(6, Element::H, 0);
+    mol.add_atom(7, Element::H, 0);
+    mol.add_atom(8, Element::H, 0);
+    mol.add_atom(9, Element::H, 0);
+
+    mol.add_bond(0, 0, 1, BondOrder::Double);
+    mol.add_bond(1, 0, 2, BondOrder::Double);
+    mol.add_bond(2, 0, 3, BondOrder::Single);
+    mol.add_bond(3, 0, 4, BondOrder::Single);
+    mol.add_bond(4, 3, 5, BondOrder::Single);
+    mol.add_bond(5, 3, 6, BondOrder::Single);
+    mol.add_bond(6, 4, 7, BondOrder::Single);
+    mol.add_bond(7, 4, 8, BondOrder::Single);
+    mol.add_bond(8, 4, 9, BondOrder::Single);
+
+    mol
+}
