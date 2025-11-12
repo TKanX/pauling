@@ -92,4 +92,12 @@ resonance_cases! {
             { atoms: || vec![2, 3, 4], bonds: || vec![2, 3] },
         ],
     },
+    valine_zwitterion => {
+        title: "Valine Zwitterion",
+        tags: &["biomolecule", "zwitterion", "carboxylate"],
+        molecule: molecules::build_valine_zwitterion,
+        systems: [
+            { atoms: || vec![2, 3, 4], bonds: || vec![2, 3] },
+        ],
+    },
 }
