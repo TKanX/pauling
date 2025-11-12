@@ -165,4 +165,13 @@ resonance_cases! {
             { atoms: || vec![6, 7, 8], bonds: || vec![6, 7] },
         ],
     },
+    asparagine_zwitterion => {
+        title: "Asparagine Zwitterion",
+        tags: &["biomolecule", "zwitterion", "amide", "carboxylate", "disconnected"],
+        molecule: molecules::build_asparagine_zwitterion,
+        systems: [
+            { atoms: || vec![2, 3, 4], bonds: || vec![2, 3] },
+            { atoms: || vec![6, 7, 8], bonds: || vec![6, 7] },
+        ],
+    },
 }
