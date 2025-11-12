@@ -472,4 +472,10 @@ resonance_cases! {
             { atoms: || vec![0, 1, 2, 3], bonds: || vec![0, 1, 2] },
         ],
     },
+    dimethyl_sulfoxide_polar_bond => {
+        title: "Dimethyl Sulfoxide (Polar S-O bond)",
+        tags: &["sulfur", "polar", "negative-case"],
+        molecule: molecules::build_dimethyl_sulfoxide,
+        systems: [],
+    },
 }

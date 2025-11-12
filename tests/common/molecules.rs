@@ -2226,3 +2226,30 @@ pub fn build_tetramethylthiourea() -> TestMolecule {
 
     mol
 }
+
+pub fn build_dimethyl_sulfoxide() -> TestMolecule {
+    let mut mol = TestMolecule::new();
+
+    mol.add_atom(0, Element::S, 1);
+    mol.add_atom(1, Element::O, -1);
+    mol.add_atom(2, Element::C, 0);
+    mol.add_atom(3, Element::C, 0);
+    mol.add_atom(4, Element::H, 0);
+    mol.add_atom(5, Element::H, 0);
+    mol.add_atom(6, Element::H, 0);
+    mol.add_atom(7, Element::H, 0);
+    mol.add_atom(8, Element::H, 0);
+    mol.add_atom(9, Element::H, 0);
+
+    mol.add_bond(0, 0, 1, BondOrder::Single);
+    mol.add_bond(1, 0, 2, BondOrder::Single);
+    mol.add_bond(2, 0, 3, BondOrder::Single);
+    mol.add_bond(3, 2, 4, BondOrder::Single);
+    mol.add_bond(4, 2, 5, BondOrder::Single);
+    mol.add_bond(5, 2, 6, BondOrder::Single);
+    mol.add_bond(6, 3, 7, BondOrder::Single);
+    mol.add_bond(7, 3, 8, BondOrder::Single);
+    mol.add_bond(8, 3, 9, BondOrder::Single);
+
+    mol
+}
