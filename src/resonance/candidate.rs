@@ -197,7 +197,7 @@ mod tests {
     use crate::core::atom::{AtomId, Element};
     use crate::core::bond::BondOrder;
     use crate::molecule::Molecule;
-    use crate::perception::ChemicalPerception;
+    use crate::perception::{ChemicalPerception, ConjugationRole};
 
     fn index(perception: &ChemicalPerception, atom_id: AtomId) -> usize {
         perception.atom_id_to_index[&atom_id]
@@ -419,6 +419,43 @@ mod tests {
         (perception, oxygen)
     }
 
+    fn build_phosphate_fragment() -> (ChemicalPerception, AtomId, AtomId, AtomId) {
+        let mut molecule = Molecule::new();
+        let phosphorus = molecule.add_atom(Element::P, 0);
+        let _oxo = molecule.add_atom(Element::O, 0);
+        molecule
+            .add_bond(phosphorus, _oxo, BondOrder::Double)
+            .expect("P=O");
+
+        let anionic_oxygen = molecule.add_atom(Element::O, -1);
+        molecule
+            .add_bond(phosphorus, anionic_oxygen, BondOrder::Single)
+            .expect("P-O-");
+
+        let bridging_oxygen = molecule.add_atom(Element::O, 0);
+        let carbon_stub = molecule.add_atom(Element::C, 0);
+        molecule
+            .add_bond(phosphorus, bridging_oxygen, BondOrder::Single)
+            .expect("P-O (ester)");
+        molecule
+            .add_bond(bridging_oxygen, carbon_stub, BondOrder::Single)
+            .expect("C-O stub");
+
+        let _solvent_oxygen = molecule.add_atom(Element::O, 0);
+        molecule
+            .add_bond(phosphorus, _solvent_oxygen, BondOrder::Single)
+            .expect("P-O (solvent)");
+
+        let hydrogen = molecule.add_atom(Element::H, 0);
+        molecule
+            .add_bond(carbon_stub, hydrogen, BondOrder::Single)
+            .expect("C-H");
+
+        let mut perception = ChemicalPerception::from_graph(&molecule).expect("perception");
+        determine(&mut perception);
+        (perception, phosphorus, anionic_oxygen, bridging_oxygen)
+    }
+
     #[test]
     fn sp2_carbons_from_multiple_bonds_are_candidates() {
         let (perception, carbons) = build_ethene();
@@ -486,6 +523,33 @@ mod tests {
         assert!(
             !perception.atoms[idx].is_conjugation_candidate,
             "dimethyl ether oxygen"
+        );
+    }
+
+    #[test]
+    fn hypervalent_phosphate_promotes_bridge_and_neighbors() {
+        let (perception, phosphorus, anionic_oxygen, bridging_oxygen) = build_phosphate_fragment();
+        let p_idx = index(&perception, phosphorus);
+        let anionic_idx = index(&perception, anionic_oxygen);
+        let bridging_idx = index(&perception, bridging_oxygen);
+
+        assert!(
+            perception.atoms[p_idx]
+                .conjugation_roles
+                .contains(ConjugationRole::HYPERVALENT_BRIDGE),
+            "phosphorus should register as a hypervalent bridge"
+        );
+        assert!(perception.atoms[p_idx].is_conjugation_candidate);
+        assert!(perception.atoms[anionic_idx].is_conjugation_candidate);
+        let bridging_roles = perception.atoms[bridging_idx].conjugation_roles;
+        assert!(
+            bridging_roles.is_empty(),
+            "bridging oxygen roles: {:?}",
+            bridging_roles
+        );
+        assert!(
+            !perception.atoms[bridging_idx].is_conjugation_candidate,
+            "bridging oxygen should remain outside the conjugated core"
         );
     }
 }
