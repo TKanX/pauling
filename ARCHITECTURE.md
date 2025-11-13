@@ -190,27 +190,32 @@ This is the final phase, which combines all previously perceived information to 
 ```mermaid
 graph TD
     subgraph "Step 6a: Identify Candidates"
-        A[Start] --> B(Mark all SP and SP2 atoms as candidates);
-        B --> C(Expand to include adjacent atoms with lone pairs);
-        C --> D(Expand to include special charged carbons);
-        D --> E[Final Set of Conjugation Candidates];
+        A[Start] --> B(Reset roles & candidate flags);
+        B --> C(Detect hypervalent bridges);
+        C --> D(Mark intrinsic π carriers);
+        D --> E(Promote lone-pair donors adjacent to roles);
+        E --> F(Promote delocalised charged carbons);
+        F --> G(Set candidate flag when any role is present);
     end
 
     subgraph "Step 6b: Find Systems"
-        F[Start with All Perceived Data] --> G(Seed frontier with all multi-bonds & aromatic bonds);
-        G --> H(BFS traversal, expanding across conjugation candidates);
-        H --> I(Identify full set of conjugated bonds);
-        I --> J(Find connected components of these bonds);
-        J --> K[Output Vec<ResonanceSystem>];
+        H[Start with All Perceived Data] --> I(Seed frontier with all multi-bonds & aromatic bonds);
+        I --> J(BFS traversal across conjugation candidates);
+        J --> K(Identify full set of conjugated bonds);
+        K --> L(Find connected components of these bonds);
+        L --> M[Output Vec<ResonanceSystem>];
     end
 
-    E --> F;
+    G --> H;
 ```
 
-- **Step 6a: Identify Conjugation Candidates**: Before searching, atoms are flagged as `is_conjugation_candidate` if they can participate in resonance.
-  - All `SP` and `SP2` hybridized atoms are candidates.
-  - Atoms with lone pairs adjacent to an existing candidate are also marked as candidates (e.g., the nitrogen in aniline).
-  - Certain charged carbons (`sp3` carbocations, carbanions) that can delocalize their charge are also included.
+- **Step 6a: Identify Conjugation Candidates**: The candidate pass now accumulates a `ConjugationRole` bitset on each atom and only lifts `is_conjugation_candidate` once at least one role is present. The tracked roles are `PI_CARRIER`, `LONE_PAIR_DONOR`, `CHARGE_MEDIATOR`, and `HYPERVALENT_BRIDGE`.
+  - **Reset**: Every atom starts with `ConjugationRole::NONE` and `is_conjugation_candidate = false` to clear previous runs.
+  - **Hypervalent bridges**: Atoms such as P, S, Cl, Br, or I with valence > 4 that contact a π partner (double/triple bond) and a σ partner able to donate (lone pairs, negative charge, or classical conjugation elements) record `HYPERVALENT_BRIDGE`.
+  - **Intrinsic π carriers**: Aromatic atoms or atoms inferred as `SP`/`SP2` insert `PI_CARRIER`, with a guard that avoids neutral, multi-coordinated ether-like oxygens immediately bound to a hypervalent bridge (those atoms should not seed resonance by themselves).
+  - **Lone-pair donors**: Atoms with lone pairs adjacent to any existing role (other than pure hypervalent bridges) add `LONE_PAIR_DONOR`, unless the atom is a neutral oxygen with degree > 1 and zero formal charge (e.g., dimethyl ether), preventing over-promotion of spectator lone pairs.
+  - **Charged carbons**: Allylic-style carbocations (formal +1, degree 3) and carbanions (formal -1) acquire `CHARGE_MEDIATOR`.
+  - **Finalize**: The pass sets `is_conjugation_candidate` to `true` wherever the accumulated roles are non-empty, keeping bridging ligands without roles (e.g., phosphate ester oxygens) outside the conjugated core while still flagging the surrounding hypervalent centre and delocalised partners.
 - **Step 6b: Find Systems**:
   - **Seeding**: The search starts with a "frontier" set containing all bonds that are definitively part of a conjugated system: all double bonds, triple bonds, and any bond with a Kekulé double bond assignment.
   - **Expansion (BFS)**: A Breadth-First Search (BFS) expands from this frontier. The search traverses from a conjugated bond, through a candidate atom, to an adjacent bond. If the atom on the other side of that adjacent bond is also a candidate, the adjacent bond is added to the set of conjugated bonds and to the search frontier.
